@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 
 public class PharmaTracker {
-    private static final Logger logger = Logger.getLogger(PharmaTracker.class.getName());
+    // private static final Logger logger = Logger.getLogger(PharmaTracker.class.getName());
 
     private Ui ui;
     private Inventory inventory;
@@ -23,14 +23,16 @@ public class PharmaTracker {
     public void run() {
         assert ui != null : "UI should not be null";
         assert inventory != null : "Inventory should not be null";
-        logger.log(Level.INFO, "PharmaTracker starting up");
+        // logger.log(Level.INFO, "PharmaTracker starting up");
         ui.printWelcomeMessage();
 
         while (true) {
             String fullCommand = ui.readCommand();
             Command c = parse(fullCommand);
-            c.execute(inventory);
-            logger.log(Level.INFO, "Command received: " + fullCommand);
+            if (c != null) {
+                c.execute(inventory);
+            }
+            // logger.log(Level.INFO, "Command received: " + fullCommand);
         }
     }
 
