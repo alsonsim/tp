@@ -33,7 +33,7 @@ public class Parser {
             System.out.println("View command triggered.");
             break;
         case "sort":
-            System.out.println("Sort command triggered.");
+            inventory.sortByExpiryDate();
             break;
         case "label":
             System.out.println("Label command triggered.");
