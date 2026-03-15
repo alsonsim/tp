@@ -1,7 +1,10 @@
 package seedu.pharmatracker.parser;
 
+import seedu.pharmatracker.command.AddCommand;
+import seedu.pharmatracker.command.Command;
+
 public class Parser {
-    public void parseCommand(String userInput) {
+    public static Command parse(String userInput) {
         String[] inputParts = userInput.trim().split("\\s+", 2);
         String commandWord = inputParts[0].toLowerCase();
         String arguments = inputParts.length > 1 ? inputParts[1] : "";
@@ -9,7 +12,7 @@ public class Parser {
         switch (commandWord) {
         case "add":
             System.out.println("Add command triggered.");
-            break;
+            return new AddCommand(arguments);
 
         case "delete":
             System.out.println("Delete command triggered.");
@@ -51,5 +54,7 @@ public class Parser {
         default:
             System.out.println("Unknown command! Please type 'help' to see the list of available commands.");
         }
+
+        return null;
     }
 }
