@@ -28,6 +28,21 @@ public class Inventory {
         return this.medications.get(index);
     }
 
+    public void listMedications() {
+        if (medications.isEmpty()) {
+            System.out.println("Inventory is empty.");
+            return;
+        }
+        for (int i = 0; i < medications.size(); i++) {
+            Medication med = medications.get(i);
+            System.out.println((i + 1) + ". " + med.getName()
+                    + " | Dosage: " + med.getDosage()
+                    + " | Qty: " + med.getQuantity()
+                    + " | Expiry: " + med.getExpiryDate()
+                    + " | Tag: " + med.getTag());
+        }
+    }
+
     public void sortByExpiryDate() {
         if (medications.isEmpty()) {
             System.out.println("Inventory is empty.");

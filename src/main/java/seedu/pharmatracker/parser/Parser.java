@@ -3,8 +3,15 @@ package seedu.pharmatracker.parser;
 import seedu.pharmatracker.command.AddCommand;
 import seedu.pharmatracker.command.Command;
 import seedu.pharmatracker.command.ListCommand;
+import seedu.pharmatracker.data.Inventory;
 
 public class Parser {
+
+    private static Inventory inventory;
+
+    public Parser(Inventory inventory) {
+        this.inventory = inventory;
+    }
 
     public static String extractName(String description) {
         int nameIndex = description.indexOf("/n");
