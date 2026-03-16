@@ -4,6 +4,7 @@ import seedu.pharmatracker.command.AddCommand;
 import seedu.pharmatracker.command.Command;
 import seedu.pharmatracker.command.ListCommand;
 import seedu.pharmatracker.command.SortCommand;
+import seedu.pharmatracker.command.FindCommand;
 import seedu.pharmatracker.data.Inventory;
 
 public class Parser {
@@ -75,7 +76,11 @@ public class Parser {
 
         case "find":
             System.out.println("Find command triggered.");
-            break;
+            if (description.isEmpty()) {
+                System.out.println("Please provide a keyword to search for.");
+                break;
+            }
+            return new FindCommand(description);
 
         case "view":
             System.out.println("View command triggered.");
