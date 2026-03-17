@@ -15,16 +15,10 @@ import seedu.pharmatracker.exceptions.PharmaTrackerException;
 
 public class Parser {
 
-    private static Inventory inventory;
-
     private static final String[] ALL_FLAGS = {
         "/n", "/d", "/q", "/e", "/t", "/df", "/mfr",
         "/dir", "/freq", "/route", "/max", "/warn"
     };
-
-    public Parser(Inventory inventory) {
-        this.inventory = inventory;
-    }
 
     private static int findNextFlagIndex(String description, int afterIndex) throws PharmaTrackerException {
         if (afterIndex < 0 || afterIndex > description.length()) {
