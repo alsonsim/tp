@@ -184,7 +184,8 @@ public class Parser {
             break;
 
         default:
-            throw new PharmaTrackerException("Unknown command! Please type 'help' to see the list of available commands.");
+            throw new PharmaTrackerException("Unknown command! " +
+                    "Please type 'help' to see the list of available commands.");
         }
 
         return null;
