@@ -158,7 +158,7 @@ public class Parser {
         String description = (inputParts.length > 1) ? inputParts[1] : "";
 
         switch (commandWord) {
-        case "add":
+        case AddCommand.COMMAND_WORD:
             String name = extractName(description);
             String dosage = extractDosage(description);
             int quantity = extractQuantity(description);

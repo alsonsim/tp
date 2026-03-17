@@ -66,5 +66,4 @@ public class AddCommand extends Command {
         inventory.addMedication(med);
         ui.printAddedMessage(med, inventory);
     }
-
 }
