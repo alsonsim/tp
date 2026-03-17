@@ -4,6 +4,7 @@ import static seedu.pharmatracker.parser.Parser.parse;
 
 import seedu.pharmatracker.command.Command;
 import seedu.pharmatracker.data.Inventory;
+import seedu.pharmatracker.exceptions.PharmaTrackerException;
 import seedu.pharmatracker.ui.Ui;
 
 public class PharmaTracker {
@@ -17,7 +18,7 @@ public class PharmaTracker {
         inventory = new Inventory();
     }
 
-    public void run() {
+    public void run() throws PharmaTrackerException {
         assert ui != null : "UI should not be null";
         assert inventory != null : "Inventory should not be null";
         // logger.log(Level.INFO, "PharmaTracker starting up");
@@ -33,7 +34,7 @@ public class PharmaTracker {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws PharmaTrackerException {
         new PharmaTracker().run();
     }
 }

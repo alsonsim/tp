@@ -8,6 +8,7 @@ import seedu.pharmatracker.command.FindCommand;
 import seedu.pharmatracker.command.ViewCommand;
 import seedu.pharmatracker.command.DispenseCommand;
 import seedu.pharmatracker.data.Inventory;
+import seedu.pharmatracker.exceptions.PharmaTrackerException;
 
 public class Parser {
 
@@ -94,7 +95,7 @@ public class Parser {
         return warnings;
     }
 
-    public static Command parse(String userInput) {
+    public static Command parse(String userInput) throws PharmaTrackerException {
         String[] inputParts = userInput.trim().split("\\s+", 2);
         String commandWord = inputParts[0].toLowerCase();
         String description = (inputParts.length > 1) ? inputParts[1] : "";
@@ -182,7 +183,7 @@ public class Parser {
             break;
 
         default:
-            System.out.println("Unknown command! Please type 'help' to see the list of available commands.");
+            throw new PharmaTrackerException("Unknown command! Please type 'help' to see the list of available commands.");
         }
 
         return null;
