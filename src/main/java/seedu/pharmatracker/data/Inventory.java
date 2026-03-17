@@ -25,6 +25,9 @@ public class Inventory {
         medicationCount--;
     }
 
+    public int getMedicationCount() {
+        return medicationCount;
+    }
     public ArrayList<Medication> getMedications() {
         return this.medications;
     }
