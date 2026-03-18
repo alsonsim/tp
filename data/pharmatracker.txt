@@ -1,0 +1,2 @@
+Paracetamol|500mg|50| 2026-12-31 |painkiller|||||||
+Ibuprofen|200mg|30| 2027-06-15 |anti-inflammatory|tablet|Pfizer|Take after food|Twice daily|Oral|400mg|

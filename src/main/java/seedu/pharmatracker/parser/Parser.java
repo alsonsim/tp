@@ -10,6 +10,8 @@ import seedu.pharmatracker.command.SortCommand;
 import seedu.pharmatracker.command.FindCommand;
 import seedu.pharmatracker.command.ViewCommand;
 import seedu.pharmatracker.command.DispenseCommand;
+import seedu.pharmatracker.command.HelpCommand;
+import seedu.pharmatracker.command.ExitCommand;
 import seedu.pharmatracker.exceptions.PharmaTrackerException;
 
 public class Parser {
@@ -230,13 +232,10 @@ public class Parser {
             break;
 
         case "help":
-            System.out.println("Help command triggered.");
-            break;
+            return new HelpCommand();
 
         case "exit":
-            System.out.println("Exit command triggered.");
-            System.exit(0);
-            break;
+            return new ExitCommand();
 
         default:
             throw new PharmaTrackerException("Unknown command! " +
