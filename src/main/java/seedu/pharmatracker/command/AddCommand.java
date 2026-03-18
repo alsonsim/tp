@@ -1,6 +1,8 @@
 package seedu.pharmatracker.command;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import seedu.pharmatracker.data.Inventory;
 import seedu.pharmatracker.data.Medication;
@@ -13,6 +15,8 @@ import seedu.pharmatracker.ui.Ui;
 public class AddCommand extends Command {
 
     public static final String COMMAND_WORD = "add";
+
+    private static final Logger logger = Logger.getLogger(AddCommand.class.getName());
 
     private final String name;
     private final String dosage;
@@ -72,6 +76,7 @@ public class AddCommand extends Command {
      */
     @Override
     public void execute(Inventory inventory, Ui ui) {
+        logger.log(Level.INFO, "Starting execution of AddCommand for medication: " + name);
         Medication med = new Medication(name, dosage, quantity, expiryDate, tag);
 
         med.setDosageForm(dosageForm);
@@ -87,5 +92,6 @@ public class AddCommand extends Command {
 
         inventory.addMedication(med);
         ui.printAddedMessage(med, inventory);
+        logger.log(Level.INFO, "Successfully executed AddCommand.");
     }
 }
