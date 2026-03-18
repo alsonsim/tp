@@ -30,9 +30,15 @@ public class DeleteCommand extends Command {
      */
     @Override
     public void execute(Inventory inventory, Ui ui) {
+        assert inventory != null : "Inventory cannot be null in DeleteCommand";
+        assert ui != null : "Ui cannot be null in DeleteCommand";
+
         int index = Integer.parseInt(description);
         int zeroBasedIndex = index - 1;
+
         Medication med = inventory.getMedication(zeroBasedIndex);
+        assert med != null : "Retrieved medication to delete cannot be null";
+
         inventory.removeMedication(med);
         ui.printDeletedMessage(med, inventory);
     }
