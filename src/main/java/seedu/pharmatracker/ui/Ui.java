@@ -19,6 +19,8 @@ public class Ui {
     private static final String MESSAGE_ADDED = "You have added the following medication:";
     private static final String INDENT = "  ";
     private static final String MESSAGE_DELETED = "You have deleted the following medication:";
+    public static final String MESSAGE_WELCOME = "Welcome to Pharma Tracker!\nWhat can I do for you today?";
+    public static final String MESSAGE_COMMAND = "Enter command: ";
 
     private final Scanner in;
 
@@ -33,27 +35,25 @@ public class Ui {
     }
 
     public void printWelcomeMessage() {
-        String logo = LOGO;
-        System.out.println("Hello from\n" + logo);
-        printLineDivider();
-        System.out.println("Welcome to Pharma Tracker!");
-        System.out.println("What can I do for you today?");
-        printLineDivider();
-    }
-
-    public void printLineDivider() {
-        System.out.println(DIVIDER);
+        printToScreen(
+                "Hello from\n" + LOGO,
+                DIVIDER,
+                MESSAGE_WELCOME,
+                DIVIDER
+        );
     }
 
     public String readCommand() {
-        System.out.print("Enter command: ");
+        System.out.print(MESSAGE_COMMAND);
         return in.nextLine().trim();
     }
 
     public void printMessage(String message) {
-        printLineDivider();
-        System.out.println(message);
-        printLineDivider();
+        printToScreen(
+                DIVIDER,
+                message,
+                DIVIDER
+        );
     }
 
     public void printAddedMessage(Medication med, Inventory inventory) {
