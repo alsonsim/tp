@@ -253,24 +253,20 @@ public class Parser {
                                   dosageForm, manufacturer, directions, frequency,
                                   route, maxDailyDose, warnings);
 
-        case "delete":
-            System.out.println("Delete command triggered.");
+        case DeleteCommand.COMMAND_WORD:
             return new DeleteCommand(description);
 
-        case "list":
-            System.out.println("List command triggered.");
+        case ListCommand.COMMAND_WORD:
             return new ListCommand();
 
-        case "find":
-            System.out.println("Find command triggered.");
+        case FindCommand.COMMAND_WORD:
             if (description.isEmpty()) {
                 System.out.println("Please provide a keyword to search for.");
                 break;
             }
             return new FindCommand(description);
 
-        case "view":
-            System.out.println("View command triggered.");
+        case ViewCommand.COMMAND_WORD:
             if (description.isEmpty()) {
                 System.out.println("Please provide an index to view.");
                 break;
@@ -283,8 +279,7 @@ public class Parser {
                 break;
             }
 
-        case "dispense":
-            System.out.println("Dispense command triggered.");
+        case DispenseCommand.COMMAND_WORD:
             if (description.isEmpty()) {
                 System.out.println("Please provide an index and quantity.");
                 break;
@@ -299,18 +294,13 @@ public class Parser {
                 break;
             }
 
-        case "sort":
-            System.out.println("Sort command triggered.");
+        case SortCommand.COMMAND_WORD:
             return new SortCommand();
 
-        case "label":
-            System.out.println("Label command triggered.");
-            break;
-
-        case "help":
+        case HelpCommand.COMMAND_WORD:
             return new HelpCommand();
 
-        case "exit":
+        case ExitCommand.COMMAND_WORD:
             return new ExitCommand();
 
         default:
