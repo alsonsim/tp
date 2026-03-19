@@ -58,13 +58,16 @@ public class SortCommand extends Command {
             LocalDate parsedDate = null;
             try {
                 parsedDate = LocalDate.parse(expiryDate, formatter1);
-                logger.log(Level.FINE, "Parsed (yyyy-MM-dd) for " + med.getName() + ": " + expiryDate + " -> " + parsedDate);
+                logger.log(Level.FINE,
+                        "Parsed (yyyy-MM-dd) for " + med.getName() + ": " + expiryDate + " -> " + parsedDate);
             } catch (DateTimeParseException e1) {
                 try {
                     parsedDate = LocalDate.parse(expiryDate, formatter2);
-                    logger.log(Level.FINE, "Parsed (dd/MM/yyyy) for " + med.getName() + ": " + expiryDate + " -> " + parsedDate);
+                    logger.log(Level.FINE,
+                            "Parsed (dd/MM/yyyy) for " + med.getName() + ": " + expiryDate + " -> " + parsedDate);
                 } catch (DateTimeParseException e2) {
-                    logger.log(Level.WARNING, "Invalid expiry date for medication: " + med.getName() + ", value: " + expiryDate);
+                    logger.log(Level.WARNING,
+                            "Invalid expiry date for medication: " + med.getName() + ", value: " + expiryDate);
                     parsedDate = LocalDate.MAX;
                 }
             }
