@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import seedu.pharmatracker.data.Inventory;
 import seedu.pharmatracker.data.Medication;
 import seedu.pharmatracker.ui.Ui;
+import seedu.pharmatracker.data.CustomerList;
 
 /**
  * Represents a command to list all medications that have already expired
@@ -52,7 +53,7 @@ public class ExpiringCommand extends Command {
      * @param ui        The user interface for displaying results.
      */
     @Override
-    public void execute(Inventory inventory, Ui ui) {
+    public void execute(Inventory inventory, Ui ui, CustomerList customerList) {
         logger.log(Level.INFO, "Executing ExpiringCommand with window: " + days + " days");
 
         assert inventory != null : "Inventory cannot be null in ExpiringCommand";

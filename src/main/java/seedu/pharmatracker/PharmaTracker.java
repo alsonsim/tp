@@ -4,7 +4,6 @@ import static seedu.pharmatracker.parser.Parser.parse;
 import seedu.pharmatracker.logger.LoggerSetup;
 
 import seedu.pharmatracker.command.Command;
-import seedu.pharmatracker.command.CustomerCommand;
 import seedu.pharmatracker.data.Inventory;
 import seedu.pharmatracker.storage.Storage;
 import seedu.pharmatracker.data.CustomerList;
@@ -51,13 +50,8 @@ public class PharmaTracker {
             String fullCommand = ui.readCommand();
             try {
                 Command c = parse(fullCommand);
-                if (c == null) {
-                    continue;
-                }
-                if (c instanceof CustomerCommand) {
-                    ((CustomerCommand) c).execute(inventory, ui, customerList);
-                } else {
-                    c.execute(inventory, ui);
+                if (c != null) {
+                    c.execute(inventory, ui, customerList);
                 }
             } catch (PharmaTrackerException e) {
                 ui.printMessage(e.getMessage());

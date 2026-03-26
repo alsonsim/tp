@@ -12,7 +12,7 @@ import seedu.pharmatracker.ui.Ui;
  * Represents a command to view the full details of a specific customer,
  * including their personal information and dispensing history.
  */
-public class ViewCustomerCommand extends CustomerCommand {
+public class ViewCustomerCommand extends Command {
 
     public static final String COMMAND_WORD = "viewcustomer";
 
