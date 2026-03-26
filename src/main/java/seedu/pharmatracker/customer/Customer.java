@@ -1,4 +1,4 @@
-package seedu.pharmatracker.data;
+package seedu.pharmatracker.customer;
 
 import java.util.ArrayList;
 

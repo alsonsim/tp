@@ -11,7 +11,7 @@ import seedu.pharmatracker.data.Inventory;
 import seedu.pharmatracker.exceptions.PharmaTrackerException;
 import seedu.pharmatracker.parser.Parser;
 import seedu.pharmatracker.ui.Ui;
-import seedu.pharmatracker.data.CustomerList;
+import seedu.pharmatracker.customer.CustomerList;
 
 public class ViewCommandTest {
     @Test

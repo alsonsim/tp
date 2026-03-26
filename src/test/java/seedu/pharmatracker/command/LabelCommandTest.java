@@ -12,7 +12,7 @@ import java.io.PrintStream;
 import seedu.pharmatracker.data.Inventory;
 import seedu.pharmatracker.data.Medication;
 import seedu.pharmatracker.ui.Ui;
-import seedu.pharmatracker.data.CustomerList;
+import seedu.pharmatracker.customer.CustomerList;
 
 public class LabelCommandTest {
 

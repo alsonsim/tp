@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 import seedu.pharmatracker.data.Inventory;
 import seedu.pharmatracker.data.Medication;
 import seedu.pharmatracker.ui.Ui;
-import seedu.pharmatracker.data.CustomerList;
+import seedu.pharmatracker.customer.CustomerList;
 
 /**
  * Represents a command to generate a printable medication label containing key

@@ -6,7 +6,7 @@ import seedu.pharmatracker.logger.LoggerSetup;
 import seedu.pharmatracker.command.Command;
 import seedu.pharmatracker.data.Inventory;
 import seedu.pharmatracker.storage.Storage;
-import seedu.pharmatracker.data.CustomerList;
+import seedu.pharmatracker.customer.CustomerList;
 import seedu.pharmatracker.exceptions.PharmaTrackerException;
 import seedu.pharmatracker.ui.Ui;
 

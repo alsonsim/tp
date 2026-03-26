@@ -2,7 +2,7 @@ package seedu.pharmatracker.command;
 
 import seedu.pharmatracker.data.Inventory;
 import seedu.pharmatracker.ui.Ui;
-import seedu.pharmatracker.data.CustomerList;
+import seedu.pharmatracker.customer.CustomerList;
 
 /**
  * Represents an abstract command in PharmaTracker.

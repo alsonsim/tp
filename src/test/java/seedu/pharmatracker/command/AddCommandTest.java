@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import seedu.pharmatracker.data.Inventory;
 import seedu.pharmatracker.data.Medication;
 import seedu.pharmatracker.ui.Ui;
-import seedu.pharmatracker.data.CustomerList;
+import seedu.pharmatracker.customer.CustomerList;
 
 /**
  * Tests the functionality of the {@link AddCommand} class.

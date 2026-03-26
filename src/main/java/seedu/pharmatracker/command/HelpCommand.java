@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 
 import seedu.pharmatracker.data.Inventory;
 import seedu.pharmatracker.ui.Ui;
-import seedu.pharmatracker.data.CustomerList;
+import seedu.pharmatracker.customer.CustomerList;
 
 public class HelpCommand extends Command {
     public static final String COMMAND_WORD = "help";

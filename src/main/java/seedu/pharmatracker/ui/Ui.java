@@ -3,7 +3,7 @@ package seedu.pharmatracker.ui;
 import java.util.Scanner;
 import java.util.ArrayList;
 
-import seedu.pharmatracker.data.Customer;
+import seedu.pharmatracker.customer.Customer;
 import seedu.pharmatracker.data.Inventory;
 import seedu.pharmatracker.data.Medication;
 

@@ -3,8 +3,8 @@ package seedu.pharmatracker.command;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import seedu.pharmatracker.data.Customer;
-import seedu.pharmatracker.data.CustomerList;
+import seedu.pharmatracker.customer.Customer;
+import seedu.pharmatracker.customer.CustomerList;
 import seedu.pharmatracker.data.Inventory;
 import seedu.pharmatracker.ui.Ui;
 
