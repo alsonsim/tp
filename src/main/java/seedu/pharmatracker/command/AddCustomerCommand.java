@@ -1,7 +1,5 @@
 package seedu.pharmatracker.command;
 
-import java.util.ArrayList;
-
 import seedu.pharmatracker.customer.Customer;
 import seedu.pharmatracker.customer.CustomerList;
 import seedu.pharmatracker.data.Inventory;

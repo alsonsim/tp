@@ -29,7 +29,7 @@ public class Ui {
     private static final String MESSAGE_DELETED = "You have deleted the following medication:";
     private static final String MESSAGE_WELCOME = "Welcome to Pharma Tracker!\nWhat can I do for you today?";
     private static final String MESSAGE_COMMAND = "Enter command: ";
-    public static final String MESSAGE_ADDED_CUSTOMER = "You have added the following customer:";
+    private static final String MESSAGE_ADDED_CUSTOMER = "You have added the following customer:";
 
     private final Scanner in;
 
