@@ -265,26 +265,109 @@ public class Parser {
         return extractedValue;
     }
 
-    private static String extractCustomerID(String description) {
+    /**
+     * Extracts the mandatory customer ID from the user input.
+     *
+     * @param description The raw string containing command arguments.
+     * @return The extracted customer ID.
+     * @throws PharmaTrackerException If the format is invalid, missing flags, or if the ID is empty.
+     */
+    private static String extractCustomerID(String description) throws PharmaTrackerException {
         int idIndex = description.indexOf("/id");
         int nameIndex = description.indexOf("/n");
-        return description.substring(idIndex + 3, nameIndex).trim();
+
+        if (idIndex == -1 || nameIndex == -1 || idIndex >= nameIndex) {
+            throw new PharmaTrackerException("Invalid format! Please ensure you include '/id' followed by '/n'.");
+        }
+
+        String id = description.substring(idIndex + 3, nameIndex).trim();
+
+        if (id.isEmpty()) {
+            throw new PharmaTrackerException("Customer ID cannot be empty!");
+
+        }
+        return id;
     }
 
-    public static String extractCustomerName(String description) {
+    /**
+     * Extracts the mandatory customer name from the user input.
+     *
+     * @param description The raw string containing command arguments.
+     * @return The extracted customer name.
+     * @throws PharmaTrackerException PharmaTrackerException If the format is invalid.
+     *
+     */
+    public static String extractCustomerName(String description) throws PharmaTrackerException {
         int nameIndex = description.indexOf("/n");
         int phoneIndex = description.indexOf("/p");
-        return description.substring(nameIndex + 2, phoneIndex);
+
+        if (nameIndex == -1 || phoneIndex == -1 || nameIndex >= phoneIndex) {
+            throw new PharmaTrackerException("Invalid format! Please ensure you include '/n' followed by '/p'.");
+        }
+
+        String name = description.substring(nameIndex + 2, phoneIndex);
+
+        if (name.isEmpty()) {
+            throw new PharmaTrackerException("Customer name cannot be empty!");
+        }
+
+        return name;
     }
 
-    public static String extractCustomerPhone(String description) {
+    /**
+     * Extracts the mandatory customer phone number from the user input.
+     *
+     * @param description The raw string containing command arguments.
+     * @return The extracted customer phone number.
+     * @throws PharmaTrackerException PharmaTrackerException If the format is invalid.
+     */
+    public static String extractCustomerPhone(String description) throws PharmaTrackerException {
         int phoneIndex = description.indexOf("/p");
         int addressIndex = description.indexOf("/addr");
-        return description.substring(phoneIndex + 2, addressIndex);
+
+        if (phoneIndex == -1) {
+            throw new PharmaTrackerException("Invalid format! Please ensure you include the '/p' flag.");
+        }
+
+        int endIndex = (addressIndex == -1) ? description.length() : addressIndex;
+
+        if (phoneIndex >= endIndex) {
+            throw new PharmaTrackerException("Invalid format! '/p' must come before '/addr'");
+        }
+
+        String phone = description.substring(phoneIndex + 2, addressIndex);
+
+        if (phone.isEmpty()) {
+            throw new PharmaTrackerException("Customer phone cannot be empty!");
+        }
+
+        return phone;
     }
 
-    public static String extractCustomerAddress(String description) {
+    /**
+     * Extracts the optional customer address from the user input.
+     *
+     * @param description The raw string containing command arguments.
+     * @return The extracted customer address, or an empty string if not provided.
+     * @throws PharmaTrackerException If the '/addr' flag is present but the address is empty.
+     */
+    public static String extractCustomerAddress(String description) throws PharmaTrackerException {
         int addressIndex = description.indexOf("/addr");
+
+        if (addressIndex == -1) {
+            return "";
+        }
+
+        if (addressIndex + 5 >= description.length()) {
+            throw new PharmaTrackerException("Customer address cannot be empty if the /addr flag is used!");
+        }
+
+        String address = description.substring(addressIndex + 5).trim();
+
+        if (address.isEmpty()) {
+            throw new PharmaTrackerException("Customer address cannot be empty if the '/addr' flag is used!");
+        }
+
         return description.substring(addressIndex + 5);
     }
 
