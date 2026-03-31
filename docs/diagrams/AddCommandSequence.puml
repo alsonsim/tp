@@ -1,0 +1,83 @@
+@startuml
+skinparam ArrowFontStyle plain
+
+actor User
+participant ":PharmaTracker" as PharmaTracker
+participant ":Ui" as Ui
+participant "<<class>>\nParser" as Parser
+participant "c:AddCommand" as AddCommand
+participant "med:Medication" as Medication
+participant "inv:Inventory" as Inventory
+
+User -> PharmaTracker : "add /n Paracetamol /d 500mg..."
+activate PharmaTracker
+
+PharmaTracker -> Ui : readCommand()
+activate Ui
+Ui --> PharmaTracker : fullCommand
+deactivate Ui
+
+PharmaTracker -> Parser : parse(fullCommand)
+activate Parser
+
+Parser -> Parser : extractName(description)
+activate Parser
+Parser --> Parser : name
+deactivate Parser
+
+Parser -> Parser : extractDosage(description)
+activate Parser
+Parser --> Parser : dosage
+deactivate Parser
+
+Parser -> Parser : extractQuantity(description)
+activate Parser
+Parser --> Parser : quantity
+deactivate Parser
+
+Parser -> Parser : extractExpiryDate(description)
+activate Parser
+Parser --> Parser : expiryDate
+deactivate Parser
+
+note right of Parser
+  Optional flags are extracted
+  using extractFlag() and
+  extractWarnings()
+end note
+
+create AddCommand
+Parser -> AddCommand : new AddCommand(name, dosage, quantity, ...)
+activate AddCommand
+AddCommand --> Parser : c
+deactivate AddCommand
+
+Parser --> PharmaTracker : c
+deactivate Parser
+
+PharmaTracker -> AddCommand : execute(inv, ui, customerList)
+activate AddCommand
+
+create Medication
+AddCommand -> Medication : new Medication(name, dosage, ...)
+activate Medication
+Medication --> AddCommand : med
+deactivate Medication
+
+AddCommand -> Inventory : addMedication(med)
+activate Inventory
+Inventory --> AddCommand
+deactivate Inventory
+
+AddCommand -> Ui : printAddedMessage(med, inv)
+activate Ui
+Ui --> AddCommand
+deactivate Ui
+
+AddCommand --> PharmaTracker
+deactivate AddCommand
+AddCommand -[hidden]-> Parser
+destroy AddCommand
+
+deactivate PharmaTracker
+@enduml

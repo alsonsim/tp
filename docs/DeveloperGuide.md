@@ -54,6 +54,9 @@ The following steps describe how an add command is processed.
 6. `PharmaTracker.run()` calls `AddCommand.execute()`, which creates a new `Medication` object and adds it to the `Inventory`.
 7. Finally, `Ui.printAddedMessage()` is called to display a confirmation message to the user.
 
+The following sequence diagram shows the full flow of the add command, including parsing and inventory updates:
+
+![Sequence diagram showing the execution flow of the Add Command](images/AddCommandSequence.png)
 ---
 
 ### List Customers Feature
