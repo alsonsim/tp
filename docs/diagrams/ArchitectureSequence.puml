@@ -1,0 +1,63 @@
+@startuml
+skinparam ArrowFontStyle plain
+
+actor User
+participant ":PharmaTracker" as PharmaTracker
+participant ":Storage" as Storage
+participant ":Ui" as Ui
+participant ":Parser" as Parser
+participant "c:Command" as Command
+
+User -> PharmaTracker : launch app
+activate PharmaTracker
+
+PharmaTracker -> Storage : load()
+activate Storage
+Storage --> PharmaTracker : inventory
+deactivate Storage
+
+PharmaTracker -> Ui : printWelcomeMessage()
+activate Ui
+Ui --> PharmaTracker
+deactivate Ui
+
+loop continuous execution loop
+    PharmaTracker -> Ui : readCommand()
+    activate Ui
+    User --> Ui : input string
+    Ui --> PharmaTracker : fullCommand
+    deactivate Ui
+
+    PharmaTracker -> Parser : parse(fullCommand)
+    activate Parser
+
+    create Command
+    Parser -> Command : instantiate specific command
+    activate Command
+    Command --> Parser : c
+    deactivate Command
+
+    Parser --> PharmaTracker : c
+    deactivate Parser
+
+    PharmaTracker -> Command : execute(inventory, ui, customerList)
+    activate Command
+
+    note right of Command
+        Execution details depend
+        on the specific command.
+    end note
+
+    Command --> PharmaTracker
+    deactivate Command
+
+    PharmaTracker -> Storage : save(inventory)
+    activate Storage
+    Storage --> PharmaTracker
+    deactivate Storage
+
+    destroy Command
+end
+
+deactivate PharmaTracker
+@enduml

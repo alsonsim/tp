@@ -12,6 +12,27 @@ Beyond the Java Standard Library, no other libraries were used. No code was reus
 
 ### Architecture
 
+PharmaTracker employs a straightforward, command-driven architecture. The core execution loop resides within
+`PharmaTracker.run()` which continuously reads user input, parses it into an executable command, executes the
+command logic, and saves any modifications to local storage. 
+
+The key components of the system are outlined below. 
+
+| Component            | Responsibility                                                                                                                                                      |
+|:---------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `PharmaTracker`      | Initializes the application components and manages the main execution loop (read → parse → execute → save).                                                         |
+| `Parser`             | Analyzes raw input strings from the user and translates them into specific, executable `Command` objects.                                                           |
+| `Command` (abstract) | Defines the required `execute()` contract. Concrete command classes (e.g., `AddCommand`, `DispenseCommand`) implement this to interact with the application's data. |
+| `Inventory`          | The in-memory data structure that stores and manages all `Medication` records.                                                                                      |
+| `CustomerList`       | The in-memory data structure that manages registered `Customer` profiles and their dispensing histories.                                                            |
+| `Storage`            | Handles the serialization and deserialization of data to a local text file (`data/pharmatracker.txt`) to ensure data persistence across sessions.                   |
+| `Ui`                 | Manages all interactions with the user, including reading terminal inputs and printing formatted outputs to the console.                                            |
+
+The following sequence diagram illustrates the complete runtime flow of PharmaTracker, from app initialization through 
+the continuous command execution loop:
+
+![Overall Architecture Sequence Diagram](images/ArchitectureSequence.png)
+
 ### UI Component
 
 {Update with information about UI Architecture}
