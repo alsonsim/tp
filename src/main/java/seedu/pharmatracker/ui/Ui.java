@@ -110,7 +110,7 @@ public class Ui {
      * Displays a confirmation message indicating that a medication has been successfully
      * removed from the inventory, along with the updated total medication count.
      *
-     * @param med The {@Link Medication} that was just deleted.
+     * @param med The {@link Medication} that was just deleted.
      * @param inventory The current {@Link Inventory} to retrieve the updated total count.
      */
     public void printDeletedMessage(Medication med, Inventory inventory) {
@@ -124,6 +124,13 @@ public class Ui {
         );
     }
 
+    /**
+     * Displays a confirmation message indicating that a customer has been successfully
+     * added to the database, along with the updated total customer count.
+     *
+     * @param customer THe {@link Customer} that was added.
+     * @param customerList The current {@link CustomerList} to retrieve the updated total count.
+     */
     public void printAddedCustomerMessage(Customer customer, CustomerList customerList) {
         int count = customerList.getCustomerCount();
         printToScreen(
@@ -135,6 +142,13 @@ public class Ui {
         );
     }
 
+    /**
+     * Displays a confirmation message indicating that a customer has been successfully
+     * removed from the database, along with the updated total customer count.
+     *
+     * @param customer The {@link Customer} that was removed.
+     * @param customerList The current {@link CustomerList} to retrieve the updated total count.
+     */
     public void printDeletedCustomerMessage(Customer customer, CustomerList customerList) {
         int count = customerList.getCustomerCount();
         printToScreen(
