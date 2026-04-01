@@ -3,18 +3,49 @@ skinparam ArrowFontStyle plain
 
 actor User
 participant ":PharmaTracker" as PharmaTracker
-participant ":Storage" as Storage
+participant "<<class>>\nLoggerSetup" as LoggerSetup
 participant ":Ui" as Ui
-participant ":Parser" as Parser
+participant ":Storage" as Storage
+participant ":Inventory" as Inventory
+participant ":CustomerList" as CustomerList
+participant "<<class>>\nParser" as Parser
 participant "c:Command" as Command
 
 User -> PharmaTracker : launch app
 activate PharmaTracker
 
+PharmaTracker -> LoggerSetup : init()
+activate LoggerSetup
+LoggerSetup --> PharmaTracker
+deactivate LoggerSetup
+
+create Ui
+PharmaTracker -> Ui : new Ui()
+activate Ui
+Ui --> PharmaTracker
+deactivate Ui
+
+create Storage
+PharmaTracker -> Storage : new Storage()
+activate Storage
+Storage --> PharmaTracker
+deactivate Storage
+
 PharmaTracker -> Storage : load()
 activate Storage
+create Inventory
+Storage -> Inventory : new Inventory()
+activate Inventory
+Inventory --> Storage
+deactivate Inventory
 Storage --> PharmaTracker : inventory
 deactivate Storage
+
+create CustomerList
+PharmaTracker -> CustomerList : new CustomerList()
+activate CustomerList
+CustomerList --> PharmaTracker
+deactivate CustomerList
 
 PharmaTracker -> Ui : printWelcomeMessage()
 activate Ui
