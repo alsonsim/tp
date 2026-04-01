@@ -127,28 +127,73 @@ Example: `delete 2`
 
 ### Dispense a medication: `dispense`
 
-Reduces the stock of a medication by the specified quantity. Optionally links the dispense event to a customer.
+Reduces the stock of a medication by the specified quantity. Optionally links the
+dispense event to a registered customer — when a customer index is provided, the
+dispensed medication is automatically recorded in that customer's dispensing
+history. If `c/CUSTOMER_INDEX` is omitted, the command behaves exactly as before.
 
 Format: `dispense INDEX q/QUANTITY [c/CUSTOMER_INDEX]`
 
-- Dispensing fails if the requested quantity exceeds current stock.
-- If `c/CUSTOMER_INDEX` is provided, the event is recorded in that customer's dispensing history.
+- Dispensing fails if the requested quantity exceeds the current stock.
+- `c/CUSTOMER_INDEX` is optional. If omitted, no customer record is updated.
+- If `c/CUSTOMER_INDEX` is provided but out of range, an error is shown and
+  stock remains unchanged.
 
-Examples:
-- `dispense 1 q/20`
-- `dispense 1 q/20 c/1`
+**Example — no customer linked:**
+
+`dispense 2 q/10`
+
+```
+Dispensing successfully!
+Medication: Ibuprofen
+Amount: 10 units
+Updated Stock: 40 units
+```
+
+**Example — linked to customer:**
+
+`dispense 1 q/20 c/1`
+
+```
+Dispensing successfully!
+Medication: Paracetamol
+Amount: 20 units
+Updated Stock: 110 units
+Recorded for customer: [C001] John Tan.
+```
 
 ---
 
 ### Restock a medication: `restock`
 
-Additively increases the stock of an existing medication (tops up, does not overwrite).
+Additively increases the stock of an existing medication. Unlike `update`, which
+overwrites the quantity, `restock` tops up on top of the current stock level.
+Useful when a new shipment of medication arrives.
 
 Format: `restock INDEX /q QUANTITY`
 
+- `INDEX` must be a positive integer corresponding to a medication shown in `list`.
 - `QUANTITY` must be a positive integer.
 
-Example: `restock 1 /q 50`
+**Examples:**
+
+- `restock 1 /q 50`
+
+  Adds 50 units to the 1st medication. If Paracetamol had 130 units:
+
+  ```
+  Restocked successfully!
+  Medication: Paracetamol | Added: 50 units | Updated Stock: 180 units.
+  ```
+
+- `restock 3 /q 100`
+
+  Adds 100 units to the 3rd medication. If Amoxicillin had 20 units:
+
+  ```
+  Restocked successfully!
+  Medication: Amoxicillin | Added: 100 units | Updated Stock: 120 units.
+  ```
 
 ---
 
@@ -240,11 +285,30 @@ Example: `add-customer /id C001 /n John Tan /p 99887766 /addr 10 Orchard Road`
 
 ---
 
-### List all customers: `listcustomers`
+## List all customers: `list-customers`
 
-Displays all registered customers with their ID, name, and phone number.
+Displays a numbered list of all customers currently registered in the system,
+showing their customer ID, name, and phone number.
 
-Format: `listcustomers`
+Format: `list-customers`
+
+**Example — 3 customers registered:**
+
+```
+PharmaTracker Customers:
+1. [C001] John Tan | Phone: 99887766
+2. [C002] Mary Tan | Phone: 87654321
+3. [C003] David Ng | Phone: 93456789
+------------------------------------------------------
+Total Customers: 3.
+```
+
+**Example — no customers registered:**
+
+```
+PharmaTracker Customers:
+No customers registered yet.
+```
 
 ---
 

@@ -185,7 +185,9 @@ The following sequence diagram shows the full execution flow of the `view` comma
 
 ### List Customers Feature
 
-The `listcustomers` command retrieves and displays all registered customers with their ID, name, and phone number.
+The `listcustomers` command retrieves and displays all registered customers with their
+customer ID, name, and phone number. It is a read-only command that requires no arguments.
+
 ```
 listcustomers
 ```
@@ -193,41 +195,38 @@ listcustomers
 #### How it works
 
 1. The user enters `listcustomers`.
-2. `PharmaTracker.run()` passes the input to `Parser.parse()`.
-3. `Parser.parse()` identifies the command word `listcustomers` and returns a `ListCustomersCommand` object (no arguments needed).
-4. `PharmaTracker.run()` calls `ListCustomersCommand.execute()`, which calls `CustomerList.getAllCustomers()`.
-5. If the list is empty, `Ui` displays `No customers registered yet.`
-6. Otherwise, each `Customer` is printed with their ID, name, and phone number, followed by a total count.
+2. `PharmaTracker.run()` reads the input and passes it to `Parser.parse()`.
+3. `Parser.parse()` identifies the command word `listcustomers` and returns a new
+   `ListCustomersCommand` object — no arguments are required.
+4. `PharmaTracker.run()` calls `ListCustomersCommand.execute()`, which calls
+   `CustomerList.getAllCustomers()` to retrieve the full customer list.
+5. The result is handled via an `alt` branch:
+   - If the list is empty, `"No customers registered yet."` is printed and the command
+     returns early.
+   - Otherwise, each `Customer` is printed with a 1-based index, their customer ID,
+     name, and phone number, followed by a total count.
 
-#### Sequence Diagram
+The following sequence diagram shows the full execution flow of the `listcustomers` command:
 
-```plantuml
-@startuml
-actor User
-participant ":Parser" as Parser
-participant ":ListCustomersCommand" as Cmd
-participant ":CustomerList" as CustList
-
-User -> Parser : "listcustomers"
-Parser -> Cmd : new ListCustomersCommand()
-Cmd -> CustList : getAllCustomers()
-CustList --> Cmd : List<Customer>
-Cmd --> User : formatted customer list
-@enduml
-```
+![Sequence diagram showing the execution flow of the List Customers Command](images/ListCustomersCommandSequence.png)
 
 #### Design Considerations
 
 | Aspect | Choice | Reason |
 |--------|--------|--------|
-| Formatting location | `ListCustomersCommand`, not `Customer.toString()` | Decouples display format from model; easier to change output later |
-| Parameters | None | Read-only command; no input needed |
+| Formatting location | `ListCustomersCommand`, not `Customer.toString()` | Decouples display format from the model; output format can be changed without touching the data class |
+| No arguments | None | Read-only query; the entire customer list is always shown |
+| Empty-list guard in `execute()` | Yes | Produces a clear user-facing message rather than displaying an empty list silently |
 
 ---
 
 ### Restock Medication Feature
 
-The `restock` command **additively** increases the stock of an existing medication. Unlike `update` which overwrites, `restock` tops up on top of the current quantity.
+The `restock` command **additively** increases the stock of an existing medication by a
+specified quantity. Unlike `update`, which overwrites the quantity field entirely, `restock`
+tops up on top of the current stock level — matching the real-world behaviour of receiving
+a new shipment.
+
 ```
 restock INDEX /q QUANTITY
 ```
@@ -235,87 +234,85 @@ restock INDEX /q QUANTITY
 #### How it works
 
 1. The user enters `restock 1 /q 50`.
-2. `Parser.parse()` identifies `restock`, extracts the index and `/q` quantity.
-3. A `RestockCommand` object is created with the index and quantity.
-4. `RestockCommand.execute()` retrieves the `Medication` at the given index from `Inventory`.
-5. `medication.addStock(quantity)` is called to increment the existing stock.
-6. `Ui` confirms with the medication name, added units, and updated stock total.
+2. `PharmaTracker.run()` passes the raw string to `Parser.parse()`.
+3. `Parser.parse()` identifies the command word `restock`, then:
+   - Extracts the integer index from the leading portion of the description.
+   - Locates the `/q` flag and parses its value as a positive integer.
+4. A new `RestockCommand(index, quantity)` object is constructed.
+5. `PharmaTracker.run()` calls `RestockCommand.execute()`, which validates the index:
+   - If the index is less than 1 or exceeds the inventory size, an error message is printed
+     and the command returns early.
+   - If the quantity is not a positive integer, an error message is printed and the command
+     returns early.
+6. For a valid index, `Inventory.getMedication(index - 1)` retrieves the target `Medication`.
+7. `medication.setQuantity(medication.getQuantity() + quantity)` increments the existing stock.
+8. `Ui` prints the confirmation message showing the medication name, units added, and updated
+   stock total.
 
-#### Sequence Diagram
+The following sequence diagram shows the full execution flow of the `restock` command:
 
-```plantuml
-@startuml
-actor User
-participant ":Parser" as Parser
-participant ":RestockCommand" as Cmd
-participant ":Inventory" as Inv
-participant ":Medication" as Med
-
-User -> Parser : "restock 1 /q 50"
-Parser -> Cmd : new RestockCommand(index=1, qty=50)
-Cmd -> Inv : getMedication(1)
-Inv --> Cmd : medication
-Cmd -> Med : addStock(50)
-Cmd --> User : "Restocked successfully! ..."
-@enduml
-```
+![Sequence diagram showing the execution flow of the Restock Command](images/RestockCommandSequence.png)
 
 #### Design Considerations
 
 | Aspect | Choice | Reason |
 |--------|--------|--------|
-| Separate from `update` | Yes | Prevents accidental overwrite during restocking; makes intent explicit |
-| Additive vs overwrite | Additive | Matches real-world shipment top-up behaviour |
+| Additive, not overwrite | Additive | Matches real-world shipment top-up behaviour; prevents accidental stock wipes |
+| Separate from `update` | Yes | Makes intent explicit; avoids relying on users to do mental arithmetic before entering a quantity |
+| Quantity validated as positive | Yes | A zero or negative restock quantity is semantically meaningless and is rejected early |
+| Index validation in `execute()` | `execute()` | Index validity depends on the live `Inventory` size, which the stateless `Parser` does not hold |
 
 ---
 
 ### Dispense with Customer Linking Feature
 
-Extends the existing `dispense` command with an optional `c/CUSTOMER_INDEX` flag. When provided, the dispensed medication is recorded into that customer's dispensing history. Omitting `/c` retains the original behaviour exactly.
+Extends the existing `dispense` command with an optional `c/CUSTOMER_INDEX` flag. When the
+flag is provided, the dispensed medication is recorded in that customer's dispensing history.
+Omitting `c/` retains the original behaviour exactly — no customer data is read or written.
+
 ```
 dispense INDEX q/QUANTITY [c/CUSTOMER_INDEX]
 ```
 
 #### How it works
 
-1. The user enters `dispense 1 q/20 c/1`.
-2. `Parser.parse()` identifies `dispense`, extracts the medication index, `q/` quantity, and optionally `c/` customer index.
-3. A `DispenseCommand` is constructed with `customerIndex` set to `1` (or `null` if `/c` is omitted).
-4. `DispenseCommand.execute()`:
-   - Retrieves the medication from `Inventory` and decrements stock unconditionally.
-   - If `customerIndex` is non-null, retrieves the `Customer` from `CustomerList` and calls `customer.addDispenseRecord(medication, quantity)`.
-5. `Ui` confirms with medication name, amount, updated stock, and customer name if linked.
+1. The user enters `dispense 1 q/20 c/1` (or `dispense 1 q/20` without customer linking).
+2. `PharmaTracker.run()` passes the raw string to `Parser.parse()`.
+3. `Parser.parse()` identifies the command word `dispense`, then:
+   - Extracts the medication index from the leading portion of the description.
+   - Locates the `q/` flag and parses the quantity.
+   - Checks for the optional `c/` flag. If present, its value is parsed as an integer
+     `customerIndex`; if absent, the two-argument constructor is used, which internally
+     sets `customerIndex` to the sentinel value `NO_CUSTOMER` (-1).
+4. A `DispenseCommand` object is constructed via the appropriate constructor.
+5. `PharmaTracker.run()` calls `DispenseCommand.execute()`, which performs the following
+   validation before modifying any data:
+   - If the medication index is out of range, an error is printed and the command returns early.
+   - If the quantity exceeds current stock, an error is printed and the command returns early.
+   - If `customerIndex != NO_CUSTOMER` and the customer index is out of range, an error is
+     printed and the command returns early. Stock is **not** decremented in this case.
+6. All validations passed: `medication.setQuantity(medication.getQuantity() - quantity)`
+   decrements the stock.
+7. If `customerIndex != NO_CUSTOMER`, `CustomerList.getCustomer(customerIndex - 1)` retrieves
+   the target `Customer`, and `customer.addDispensingHistory(record)` appends the dispense
+   record to their history.
+8. `Ui` prints the confirmation message. If a customer was linked, the output includes the
+   customer's ID and name.
 
-#### Sequence Diagram
+The following sequence diagram shows the full execution flow of `dispense` with customer
+linking. The `[c/ flag present]` alt branch is only entered when a customer index is supplied:
 
-```plantuml
-@startuml
-actor User
-participant ":Parser" as Parser
-participant ":DispenseCommand" as Cmd
-participant ":Inventory" as Inv
-participant ":CustomerList" as CustList
-participant ":Customer" as Cust
-
-User -> Parser : "dispense 1 q/20 c/1"
-Parser -> Cmd : new DispenseCommand(index=1, qty=20, custIndex=1)
-Cmd -> Inv : getMedication(1)
-Inv --> Cmd : medication
-Cmd -> medication : decrementStock(20)
-Cmd -> CustList : getCustomer(1)
-CustList --> Cmd : customer
-Cmd -> Cust : addDispenseRecord(medication, 20)
-Cmd --> User : success message with customer name
-@enduml
-```
+![Sequence diagram showing the execution flow of the Dispense Command with Customer Linking](images/DispenseCommandSequence.png)
 
 #### Design Considerations
 
 | Aspect | Choice | Reason |
 |--------|--------|--------|
-| Optional `/c` flag vs separate command | Optional flag | Avoids duplicating stock-decrement logic; backward compatible |
-| Record stored in `Customer` vs `Medication` | `Customer` | Querying a customer's full history is natural; avoids scanning all medications |
-| `null` for absent customer | `null` check before lookup | Clean guard; no dummy customer object needed |
+| Optional `c/` flag vs a separate command | Optional flag on existing command | Avoids duplicating stock-decrement logic; fully backward compatible — existing calls without `c/` are unaffected |
+| Sentinel value `NO_CUSTOMER = -1` | Sentinel (`int`) over `Integer` / `null` | Avoids autoboxing and null-pointer risk on a primitive field; the sentinel is a named constant and self-documenting |
+| Customer index validated **before** stock decrement | Pre-decrement guard | Prevents a state where stock is already reduced but the customer record write then fails |
+| Dispensing record stored on `Customer`, not `Medication` | `Customer` | The natural query is "what has this customer received?"; storing on `Medication` would require scanning every medication to reconstruct a customer's history |
+| Two constructors (2-arg and 3-arg) | Overloaded constructors | Keeps call sites for the no-customer case clean; the 2-arg constructor delegates to the 3-arg one via `this(index, quantity, NO_CUSTOMER)` |
 
 ---
 
