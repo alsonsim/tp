@@ -1,4 +1,4 @@
-# Project Portfolio Page — Yi Herng
+# Project Portfolio Page — Yi Herng (@yihernggggg)
 
 ## Overview
 
