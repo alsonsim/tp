@@ -1,5 +1,6 @@
 package seedu.pharmatracker.command;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -9,10 +10,14 @@ import seedu.pharmatracker.data.Medication;
 import seedu.pharmatracker.logger.LoggerSetup;
 import seedu.pharmatracker.ui.Ui;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RestockCommandTest {
 
@@ -22,9 +27,13 @@ public class RestockCommandTest {
     private Ui ui;
     private CustomerList customerList;
 
+    private final ByteArrayOutputStream out = new ByteArrayOutputStream();
+    private final PrintStream original = System.out;
+
     @BeforeEach
     public void setUp() {
         LoggerSetup.init();
+        System.setOut(new PrintStream(out));
         inventory = new Inventory();
         ui = new Ui();
         customerList = new CustomerList();
@@ -34,15 +43,54 @@ public class RestockCommandTest {
         logger.log(Level.INFO, "Test setUp complete: inventory loaded with 3 medications");
     }
 
+    @AfterEach
+    public void tearDown() {
+        System.setOut(original);
+    }
+
+    // -------------------------------------------------------------------------
+    // Null / assertion guard tests
+    // -------------------------------------------------------------------------
+
+    /**
+     * Tests that passing a null inventory throws an AssertionError.
+     */
+    @Test
+    public void execute_nullInventory_throwsAssertionError() {
+        assertThrows(AssertionError.class, () ->
+                new RestockCommand(1, 50).execute(null, ui, customerList));
+    }
+
+    /**
+     * Tests that passing a null Ui throws an AssertionError.
+     */
+    @Test
+    public void execute_nullUi_throwsAssertionError() {
+        assertThrows(AssertionError.class, () ->
+                new RestockCommand(1, 50).execute(inventory, null, customerList));
+    }
+
+    /**
+     * Tests that passing a null CustomerList throws an AssertionError.
+     */
+    @Test
+    public void execute_nullCustomerList_throwsAssertionError() {
+        assertThrows(AssertionError.class, () ->
+                new RestockCommand(1, 50).execute(inventory, ui, null));
+    }
+
+    // -------------------------------------------------------------------------
+    // Valid restock
+    // -------------------------------------------------------------------------
+
     @Test
     public void execute_validRestock_stockIncreasesCorrectly() {
         logger.log(Level.INFO, "Test: validRestock on index 1 with qty 50");
         int before = inventory.getMedication(0).getQuantity();
         new RestockCommand(1, 50).execute(inventory, ui, customerList);
         int after = inventory.getMedication(0).getQuantity();
-        assert after == before + 50 : "Stock should increase by exactly the restocked quantity";
+        assertEquals(before + 50, after);
         assertEquals(180, after);
-        logger.log(Level.INFO, "Test passed: stock updated from {0} to {1}", new Object[]{before, after});
     }
 
     @Test
@@ -51,83 +99,195 @@ public class RestockCommandTest {
         int before = inventory.getMedication(2).getQuantity();
         new RestockCommand(3, 100).execute(inventory, ui, customerList);
         int after = inventory.getMedication(2).getQuantity();
-        assert after == before + 100 : "Amoxicillin stock should increase by 100";
+        assertEquals(before + 100, after);
         assertEquals(120, after);
-        logger.log(Level.INFO, "Test passed: Amoxicillin stock updated from {0} to {1}",
-                new Object[]{before, after});
     }
+
+    /**
+     * Tests that restocking the last valid index works correctly.
+     */
+    @Test
+    public void execute_validRestockLastIndex_stockIncreasesCorrectly() {
+        int before = inventory.getMedication(2).getQuantity();
+        new RestockCommand(3, 5).execute(inventory, ui, customerList);
+        assertEquals(before + 5, inventory.getMedication(2).getQuantity());
+    }
+
+    /**
+     * Tests that a restock of exactly 1 unit is accepted as a boundary value.
+     */
+    @Test
+    public void execute_minimumValidQuantity_stockIncreasesByOne() {
+        int before = inventory.getMedication(0).getQuantity();
+        new RestockCommand(1, 1).execute(inventory, ui, customerList);
+        assertEquals(before + 1, inventory.getMedication(0).getQuantity());
+    }
+
+    /**
+     * Tests that a successful restock prints a confirmation message.
+     */
+    @Test
+    public void execute_validRestock_printsSuccessMessage() {
+        new RestockCommand(1, 50).execute(inventory, ui, customerList);
+        assertTrue(out.toString().contains("Paracetamol") || out.toString().contains("restock")
+                || out.toString().contains("Restock") || out.toString().contains("success")
+                || out.toString().contains("updated") || out.toString().contains("180"));
+    }
+
+    // -------------------------------------------------------------------------
+    // Invalid quantity
+    // -------------------------------------------------------------------------
 
     @Test
     public void execute_zeroQuantity_stockUnchanged() {
-        logger.log(Level.INFO, "Test: zero quantity restock should be rejected");
         int before = inventory.getMedication(0).getQuantity();
         new RestockCommand(1, 0).execute(inventory, ui, customerList);
-        int after = inventory.getMedication(0).getQuantity();
-        assert before == after : "Stock must remain unchanged when quantity is 0";
-        assertEquals(130, after);
-        logger.log(Level.INFO, "Test passed: stock unchanged at {0}", after);
+        assertEquals(before, inventory.getMedication(0).getQuantity());
     }
 
     @Test
     public void execute_negativeQuantity_stockUnchanged() {
-        logger.log(Level.INFO, "Test: negative quantity restock should be rejected");
         int before = inventory.getMedication(0).getQuantity();
         new RestockCommand(1, -10).execute(inventory, ui, customerList);
-        int after = inventory.getMedication(0).getQuantity();
-        assert before == after : "Stock must remain unchanged when quantity is negative";
-        assertEquals(130, after);
-        logger.log(Level.INFO, "Test passed: stock unchanged at {0}", after);
+        assertEquals(before, inventory.getMedication(0).getQuantity());
     }
+
+    /**
+     * Tests that an invalid quantity prints an error message.
+     */
+    @Test
+    public void execute_zeroQuantity_printsErrorMessage() {
+        new RestockCommand(1, 0).execute(inventory, ui, customerList);
+        String output = out.toString();
+        assertTrue(output.contains("Invalid") || output.contains("invalid")
+                || output.contains("least 1") || output.contains("must be"));
+    }
+
+    /**
+     * Tests that a negative quantity prints an error message.
+     */
+    @Test
+    public void execute_negativeQuantity_printsErrorMessage() {
+        new RestockCommand(1, -10).execute(inventory, ui, customerList);
+        String output = out.toString();
+        assertTrue(output.contains("Invalid") || output.contains("invalid")
+                || output.contains("least 1") || output.contains("must be"));
+    }
+
+    // -------------------------------------------------------------------------
+    // Invalid index
+    // -------------------------------------------------------------------------
 
     @Test
     public void execute_indexTooLarge_stockUnchanged() {
-        logger.log(Level.INFO, "Test: out-of-bounds index 99 should be rejected");
         new RestockCommand(99, 50).execute(inventory, ui, customerList);
         assertEquals(130, inventory.getMedication(0).getQuantity());
         assertEquals(50, inventory.getMedication(1).getQuantity());
         assertEquals(20, inventory.getMedication(2).getQuantity());
-        logger.log(Level.INFO, "Test passed: all stocks unchanged after invalid index");
     }
 
     @Test
     public void execute_indexZero_stockUnchanged() {
-        logger.log(Level.INFO, "Test: index 0 (below valid range) should be rejected");
         int before = inventory.getMedication(0).getQuantity();
         new RestockCommand(0, 50).execute(inventory, ui, customerList);
-        int after = inventory.getMedication(0).getQuantity();
-        assert before == after : "Stock must remain unchanged when index is 0";
-        assertEquals(130, after);
-        logger.log(Level.INFO, "Test passed: stock unchanged at {0}", after);
+        assertEquals(before, inventory.getMedication(0).getQuantity());
     }
 
     @Test
     public void execute_indexNegative_stockUnchanged() {
-        logger.log(Level.INFO, "Test: negative index should be rejected");
         int before = inventory.getMedication(0).getQuantity();
         new RestockCommand(-1, 50).execute(inventory, ui, customerList);
-        int after = inventory.getMedication(0).getQuantity();
-        assert before == after : "Stock must remain unchanged when index is negative";
-        assertEquals(130, after);
-        logger.log(Level.INFO, "Test passed: stock unchanged at {0}", after);
+        assertEquals(before, inventory.getMedication(0).getQuantity());
     }
+
+    /**
+     * Tests that an out-of-bounds index prints an error message.
+     */
+    @Test
+    public void execute_indexTooLarge_printsErrorMessage() {
+        new RestockCommand(99, 50).execute(inventory, ui, customerList);
+        String output = out.toString();
+        assertTrue(output.contains("Invalid") || output.contains("invalid")
+                || output.contains("valid") || output.contains("index"));
+    }
+
+    /**
+     * Tests that index one above the valid range is also rejected.
+     */
+    @Test
+    public void execute_indexOnePastEnd_stockUnchanged() {
+        new RestockCommand(4, 50).execute(inventory, ui, customerList);
+        assertEquals(130, inventory.getMedication(0).getQuantity());
+        assertEquals(50, inventory.getMedication(1).getQuantity());
+        assertEquals(20, inventory.getMedication(2).getQuantity());
+    }
+
+    // -------------------------------------------------------------------------
+    // Isolation and accumulation
+    // -------------------------------------------------------------------------
 
     @Test
     public void execute_restockDoesNotAffectOtherMedications() {
-        logger.log(Level.INFO, "Test: restock index 1 should not affect index 2 or 3");
         new RestockCommand(1, 50).execute(inventory, ui, customerList);
         assertEquals(50, inventory.getMedication(1).getQuantity());
         assertEquals(20, inventory.getMedication(2).getQuantity());
-        logger.log(Level.INFO, "Test passed: other medications unaffected");
     }
 
     @Test
     public void execute_multipleRestocks_stockAccumulatesCorrectly() {
-        logger.log(Level.INFO, "Test: two consecutive restocks should accumulate");
         new RestockCommand(1, 50).execute(inventory, ui, customerList);
         new RestockCommand(1, 30).execute(inventory, ui, customerList);
-        int finalStock = inventory.getMedication(0).getQuantity();
-        assert finalStock == 210 : "Stock should be 130 + 50 + 30 = 210";
-        assertEquals(210, finalStock);
-        logger.log(Level.INFO, "Test passed: accumulated stock is {0}", finalStock);
+        assertEquals(210, inventory.getMedication(0).getQuantity());
+    }
+
+    /**
+     * Tests that restocking different medications independently updates each correctly.
+     */
+    @Test
+    public void execute_restockDifferentMedications_eachUpdatesIndependently() {
+        new RestockCommand(1, 10).execute(inventory, ui, customerList);
+        new RestockCommand(2, 20).execute(inventory, ui, customerList);
+        new RestockCommand(3, 30).execute(inventory, ui, customerList);
+        assertEquals(140, inventory.getMedication(0).getQuantity());
+        assertEquals(70, inventory.getMedication(1).getQuantity());
+        assertEquals(50, inventory.getMedication(2).getQuantity());
+    }
+
+    /**
+     * Tests that an invalid restock in a sequence does not affect subsequent valid restocks.
+     */
+    @Test
+    public void execute_invalidThenValid_validRestockSucceeds() {
+        new RestockCommand(99, 50).execute(inventory, ui, customerList);
+        new RestockCommand(1, 20).execute(inventory, ui, customerList);
+        assertEquals(150, inventory.getMedication(0).getQuantity());
+    }
+
+    /**
+     * Tests that a valid restock followed by an invalid one leaves the inventory
+     * in the correctly updated state from the valid restock only.
+     */
+    @Test
+    public void execute_validThenInvalid_onlyValidRestockApplied() {
+        new RestockCommand(1, 20).execute(inventory, ui, customerList);
+        new RestockCommand(0, 50).execute(inventory, ui, customerList);
+        assertEquals(150, inventory.getMedication(0).getQuantity());
+    }
+
+    // -------------------------------------------------------------------------
+    // Empty inventory
+    // -------------------------------------------------------------------------
+
+    /**
+     * Tests that restocking against an empty inventory prints an error
+     * and does not throw.
+     */
+    @Test
+    public void execute_emptyInventory_printsError() {
+        Inventory emptyInventory = new Inventory();
+        new RestockCommand(1, 50).execute(emptyInventory, ui, customerList);
+        String output = out.toString();
+        assertTrue(output.contains("Invalid") || output.contains("empty")
+                || output.contains("valid") || output.contains("index"));
     }
 }
