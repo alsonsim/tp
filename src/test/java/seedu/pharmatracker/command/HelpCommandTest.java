@@ -112,7 +112,7 @@ public class HelpCommandTest {
     }
 
     @Test
-    void execute_helpCommand_withEmptyInventory_stillPrintsHelp() {
+    void execute_helpCommand_emptyInventory() {
         Inventory emptyInventory = new Inventory();
         new HelpCommand().execute(emptyInventory, ui, customerList);
         String output = outContent.toString();
@@ -120,7 +120,7 @@ public class HelpCommandTest {
     }
 
     @Test
-    void execute_helpCommand_withEmptyCustomerList_stillPrintsHelp() {
+    void execute_helpCommand_emptyCustomerList() {
         CustomerList emptyCustomerList = new CustomerList();
         new HelpCommand().execute(inventory, ui, emptyCustomerList);
         String output = outContent.toString();

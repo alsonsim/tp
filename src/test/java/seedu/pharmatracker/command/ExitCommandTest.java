@@ -82,7 +82,7 @@ public class ExitCommandTest {
     }
 
     @Test
-    void execute_exitCommand_withEmptyInventory_stillPrintsMessage() {
+    void execute_exitCommand_emptyInventory() {
         ExitCommand exitCommand = new ExitCommand();
         exitCommand.setShouldExit(false);
         Inventory emptyInventory = new Inventory();

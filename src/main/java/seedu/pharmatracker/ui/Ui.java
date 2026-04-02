@@ -355,7 +355,8 @@ public class Ui {
         System.out.println(" 6. View Medication Details  (view INDEX)");
         System.out.println(" 7. Sort by Expiry Date      (sort)");
         System.out.println(" 8. Print Description Label  (label INDEX)");
-        System.out.println(" 9. Update Medication        (update INDEX /n NAME /d DOSAGE /q QUANTITY /e EXPIRY /t TAG)");
+        System.out.println(" 9. Update Medication        "
+                + "(update INDEX /n NAME /d DOSAGE /q QUANTITY /e EXPIRY /t TAG)");
         System.out.println("10. Restock Medication       (restock INDEX /q QUANTITY)");
         System.out.println("11. Low Stock Alert          (lowstock | lowstock /threshold NUMBER)");
         System.out.println("12. Expiring Medications     (expiring | expiring /days NUMBER)");
