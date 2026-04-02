@@ -490,7 +490,9 @@ updatecustomer INDEX [/n NAME] [/p PHONE] [/a ADDRESS]
 7. For each non-null field, the corresponding setter (`customer.setName()`, `customer.setPhone()`, `customer.setAddress()`) is called on the retrieved `Customer` object.
 8. `Ui.printUpdatedCustomerMessage(customer)` confirms the update to the user.
 
+The following sequence diagram shows the full execution flow of the `updatecustomer` command:
 
+![Sequence diagram showing the execution flow of the Update Customer Command](images/updateCustomerCommandDiagram.png)
 
 #### Design Considerations
 
@@ -499,6 +501,40 @@ updatecustomer INDEX [/n NAME] [/p PHONE] [/a ADDRESS]
 | `null` for absent flags | Yes | Cleanly distinguishes "not provided" from an empty string; avoids silent overwrites |
 | Partial update vs full replacement | Partial | Users should not have to re-enter unchanged fields |
 | Validation location | `execute()`, not `Parser` | Keeps parser stateless; index validity requires live `CustomerList` size |
+
+---
+
+### Sort Medication Feature
+
+The `sort` command sorts all medications in the inventory by expiry date in ascending order,
+placing the soonest-expiring items first. Medications with invalid or unparseable expiry dates
+are treated as having the furthest possible expiry date and appear last.
+```
+sort
+```
+
+#### How it works
+
+1. The user enters `sort`.
+2. `PharmaTracker.run()` reads the input and passes it to `Parser.parse()`.
+3. `Parser.parse()` identifies the command word `sort` and returns a new `SortCommand` object — no arguments are required.
+4. `PharmaTracker.run()` calls `SortCommand.execute()`, which retrieves the medication list from `Inventory.getMedications()`.
+5. If the list is empty, `"Inventory is empty."` is printed and the command returns early.
+6. Otherwise, the list is sorted in-place using `ArrayList.sort()` with a custom `Comparator`. For each medication, `getExpiryDate()` is retrieved and parsed using two formatters (`yyyy-MM-dd` then `dd/MM/yyyy`). If both fail, `LocalDate.MAX` is used as a fallback.
+7. The sorted list is printed to the console with 1-based indices.
+
+The following sequence diagram shows the full execution flow of the `sort` command:
+
+![Sequence diagram showing the execution flow of the Sort Command](images/sortCommandSequenceDiagram.png)
+
+#### Design Considerations
+
+| Aspect | Choice | Reason |
+|--------|--------|--------|
+| Sort in-place | Yes | Mutates the `Inventory` directly; sort order is preserved for subsequent `list` calls |
+| `LocalDate.MAX` fallback for bad dates | Yes | Keeps bad-data records at the end without crashing; staff can then inspect and fix them |
+| No arguments | None | Sorting always operates on the full inventory; no filtering is needed |
+| Direct `System.out` output | `System.out` in command | The sort result is a full list render; a dedicated `Ui` method would be added if richer formatting is ever needed |
 
 ---
 
@@ -519,7 +555,7 @@ lowstock [/threshold NUMBER]
 5. `LowStockCommand.execute()` iterates over every `Medication` in the `Inventory`. Any medication whose `quantity < threshold` is collected into a list.
 6. `Ui.printLowStockList(lowStockMeds, threshold)` displays the filtered list with the active threshold, or a message stating all stock is sufficient.
 
-
+![Sequence diagram showing the execution flow of the Update Customer Command](images/lowStockCommandSequenceDiagram.png)
 
 #### Design Considerations
 
@@ -572,6 +608,41 @@ The following sequence diagram shows the full execution flow of the `expiring` c
 | Skip medications with unparseable expiry | Silent skip | Prevents a single bad record from crashing the entire scan; logged for debugging |
 | Two separate result lists (`expiredMeds`, `expiringMeds`) | Yes | Allows the `Ui` to present expired and soon-to-expire items in clearly labelled sections, giving staff immediately actionable information |
 | Display delegated to `Ui.showExpiringMedications()` | `Ui` | Consistent with SRP; the command handles filtering logic only and hands display responsibility to `Ui` |
+
+---
+
+### Label Feature
+
+The `label` command generates a printable medication label for a specific medication in the
+inventory, identified by its 1-based index. The label displays the medication's name, dosage,
+expiry date, and tag (if present).
+```
+label INDEX
+```
+
+#### How it works
+
+1. The user enters `label 1`.
+2. `PharmaTracker.run()` reads the input and passes it to `Parser.parse()`.
+3. `Parser.parse()` identifies the command word `label` and parses the description as an integer index.
+4. A new `LabelCommand(index)` object is constructed.
+5. `PharmaTracker.run()` calls `LabelCommand.execute()`, which first validates:
+   - If the inventory is empty, `"Inventory is empty."` is printed and the command returns early.
+   - If the index is less than 1 or greater than the inventory size, an invalid-index error is printed and the command returns early.
+6. For a valid index, `Inventory.getMedication(index - 1)` retrieves the target `Medication`.
+7. A formatted label block is printed showing the medication's name, dosage, expiry date, and tag. The tag line is omitted if the tag is empty or `null`.
+
+The following sequence diagram shows the full execution flow of the `label` command:
+
+![Sequence diagram showing the execution flow of the Label Command](images/labelCommandSequenceDiagram.png)
+
+#### Design Considerations
+
+| Aspect | Choice | Reason |
+|--------|--------|--------|
+| Tag line omitted when empty | Yes | A blank tag line on a physical label looks unprofessional and adds no information |
+| Two-stage guard (empty inventory, then out-of-range) | Yes | Produces a clearer error message; avoids an `IndexOutOfBoundsException` when the list is empty |
+| Direct `System.out` for label body | `System.out` in command | The label block is self-contained formatting; moving it to `Ui` would offer no architectural benefit for a single-command output |
 
 ---
 
