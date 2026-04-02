@@ -44,6 +44,8 @@ public class DispenseCommand extends Command {
      * @param customerIndex 1-based position of the customer to link, or -1 if none.
      */
     public DispenseCommand(int index, int quantity, int customerIndex) {
+        assert quantity >= MIN_QUANTITY : "Quantity must be at least 1";
+        assert index >= 1 : "Medication index must be at least 1";
         this.index = index;
         this.quantity = quantity;
         this.customerIndex = customerIndex;
