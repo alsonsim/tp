@@ -1,0 +1,24 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide circle
+
+class CustomerList {
+    - customers: ArrayList<Customer>
+    + addCustomer(customer: Customer)
+    + deleteCustomer(index: int)
+    + getCustomer(index: int): Customer
+    + findByName(keyword: String): ArrayList<Customer>
+    + size(): int
+}
+
+class Customer {
+    - customerId: String
+    - name: String
+    - phone: String
+    - address: String
+    - dispensingHistory: ArrayList<String>
+    + addDispensingHistory(medicationRecord: String)
+}
+
+CustomerList "1" --> "*" Customer : manages >
+@enduml

@@ -18,6 +18,8 @@ public class Storage {
     private static final String WARNINGS_SEPARATOR = ";";
     private static final int MIN_FIELDS = 4;
     private static final Logger logger = Logger.getLogger(Storage.class.getName());
+    private static final String CUSTOMER_FILE_PATH = "data/customers.txt";
+    private static final String HISTORY_SEPARATOR = ";";
 
     public void save(Inventory inventory) {
         assert inventory != null : "Inventory should not be null";
@@ -114,5 +116,76 @@ public class Storage {
             System.out.println("Error loading data: " + e.getMessage());
         }
         return inventory;
+    }
+
+    /**
+     * Saves the current list of customers and their dispensing histories to a text file.
+     * History entries are joined using a semicolon (;) to handle multiple medications.
+     *
+     * @param customerList The manager containing the customers to save.
+     */
+    public void saveCustomers(seedu.pharmatracker.customer.CustomerList customerList) {
+        assert customerList != null : "CustomerList should not be null";
+        try {
+            java.io.File file = new java.io.File(CUSTOMER_FILE_PATH);
+            file.getParentFile().mkdirs();
+            java.io.FileWriter fw = new java.io.FileWriter(file);
+
+            for (int i = 0; i < customerList.size(); i++) {
+                seedu.pharmatracker.customer.Customer c = customerList.getCustomer(i);
+                // Join all dispensing history strings into one part using a semicolon
+                String joinedHistory = String.join(HISTORY_SEPARATOR, c.getDispensingHistory());
+
+                fw.write(c.getCustomerId() + " | "
+                        + c.getName() + " | "
+                        + c.getPhone() + " | "
+                        + c.getAddress() + " | "
+                        + joinedHistory + "\n");
+            }
+            fw.close();
+        } catch (java.io.IOException e) {
+            System.out.println("Error saving customer data: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Loads customer data from the local text file.
+     * Correctly reconstructs the dispensing history for customers with multiple records.
+     *
+     * @return A CustomerList populated with data from the file.
+     */
+    public seedu.pharmatracker.customer.CustomerList loadCustomers() {
+        seedu.pharmatracker.customer.CustomerList list = new seedu.pharmatracker.customer.CustomerList();
+        java.io.File file = new java.io.File(CUSTOMER_FILE_PATH);
+        if (!file.exists()) {
+            return list;
+        }
+        try {
+            java.util.Scanner sc = new java.util.Scanner(file);
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine().trim();
+                if (line.isEmpty()) {
+                    continue;
+                }
+                String[] parts = line.split(" \\| ");
+                if (parts.length >= 4) {
+                    seedu.pharmatracker.customer.Customer c =
+                            new seedu.pharmatracker.customer.Customer(parts[0], parts[1], parts[2], parts[3]);
+
+                    // If there is history data (the 5th part), split and add it
+                    if (parts.length > 4 && !parts[4].trim().isEmpty()) {
+                        String[] historyEntries = parts[4].split(HISTORY_SEPARATOR);
+                        for (String entry : historyEntries) {
+                            c.addDispensingHistory(entry);
+                        }
+                    }
+                    list.addCustomer(c);
+                }
+            }
+            sc.close();
+        } catch (java.io.FileNotFoundException e) {
+            System.out.println("Customer file not found.");
+        }
+        return list;
     }
 }

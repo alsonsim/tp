@@ -25,8 +25,17 @@ public class HelpCommand extends Command {
         System.out.println("6. View Medication Details (view INDEX)");
         System.out.println("7. Sort by Expiry Date (sort)");
         System.out.println("8. Print Description Label (label INDEX)");
-        System.out.println("9. Viewing Help (help)");
-        System.out.println("10. Exiting the Program (exit)");
+        System.out.println("9. Update Medication (update INDEX [/n NAME] [/d DOSAGE] [/q QUANTITY] [/e EXPIRY] [...])");
+        System.out.println("10. Restock Medication (restock INDEX /q QUANTITY)");
+        System.out.println("11. Check Low Stock (lowstock [/threshold NUMBER])");
+        System.out.println("12. Check Expiring (expiring [/days DAYS])");
+        System.out.println("13. Add Customer (add-customer /id ID /n NAME /p PHONE /addr ADDRESS)");
+        System.out.println("14. List Customers (list-customers)");
+        System.out.println("15. View Customer Details (view-customer INDEX)");
+        System.out.println("16. Update Customer (updatecustomer INDEX [/n NAME] [/p PHONE] [/a ADDRESS])");
+        System.out.println("17. Delete Customer (delete-customer INDEX)");
+        System.out.println("18. Viewing Help (help)");
+        System.out.println("19. Exiting the Program (exit)");
         logger.log(Level.INFO, "HelpCommand executed successfully");
     }
 }

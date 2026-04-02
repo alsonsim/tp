@@ -19,7 +19,16 @@ Enter command: Here are the possible features of the chatbot:
 6. View Medication Details (view INDEX)
 7. Sort by Expiry Date (sort)
 8. Print Description Label (label INDEX)
-9. Viewing Help (help)
-10. Exiting the Program (exit)
+9. Update Medication (update INDEX [/n NAME] [/d DOSAGE] [/q QUANTITY] [/e EXPIRY] [...])
+10. Restock Medication (restock INDEX /q QUANTITY)
+11. Check Low Stock (lowstock [/threshold NUMBER])
+12. Check Expiring (expiring [/days DAYS])
+13. Add Customer (add-customer /id ID /n NAME /p PHONE /addr ADDRESS)
+14. List Customers (list-customers)
+15. View Customer Details (view-customer INDEX)
+16. Update Customer (updatecustomer INDEX [/n NAME] [/p PHONE] [/a ADDRESS])
+17. Delete Customer (delete-customer INDEX)
+18. Viewing Help (help)
+19. Exiting the Program (exit)
 Enter command: Exiting Application
 Stay Healthy!
