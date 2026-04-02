@@ -19,10 +19,23 @@ public class DeleteCustomerCommand extends Command {
     private static final Logger logger = Logger.getLogger(DeleteCustomerCommand.class.getName());
     private final String description;
 
+    /**
+     * Constructs a DeleteCustomerCommand with the specified target index description.
+     *
+     * @param description The 1-based index of the customer to be deleted, provided as a String.
+     */
     public DeleteCustomerCommand(String description) {
         this.description = description;
     }
 
+    /**
+     * Executes the delete customer command by parsing the target index, locating the corresponding
+     * {@link Customer} in the {@link CustomerList}, removing them, and displaying a confirmation message.
+     *
+     * @param inventory    The current inventory containing all stored medications (unused in this command).
+     * @param ui           The user interface used to display messages and interact with the user.
+     * @param customerList The list of registered customers in the system.
+     */
     @Override
     public void execute(Inventory inventory, Ui ui, CustomerList customerList) {
         logger.log(Level.INFO, "Starting execution of DeleteCommand for index: " + description);
