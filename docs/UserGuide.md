@@ -44,6 +44,19 @@ Examples:
 
 ---
 
+### Delete a medication: `delete`
+
+Removes a medication from the inventory. 
+
+**Format:** `delete INDEX`
+
+- Deletes the medication at the specified `INDEX`. 
+- The `INDEX` refers to the index number shown in the **most recently displayed** medication list.
+- The index **must be a positive integer**, and must not exceed the number of medications currently in the list.
+
+Examples
+- `list` followed by `delete 5` (This deletes the 5th medication in the inventory.)
+
 ### List all medications: `list`
 
 Displays a high-level summary of all medications currently stored in the system. This provides a quick overview of drug names and current stock levels for the pharmacist.
