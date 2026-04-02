@@ -1,0 +1,48 @@
+@startuml
+actor User
+participant ":PharmaTracker" as PharmaTracker
+participant ":Parser" as Parser
+participant "u:UpdateCommand" as UpdateCommand
+participant ":Inventory" as Inventory
+participant "med:Medication" as Medication
+participant ":Ui" as Ui
+
+User -> PharmaTracker : update 1 /q 50
+activate PharmaTracker
+
+PharmaTracker -> Parser : parse("update 1 /q 50")
+activate Parser
+
+Parser -> Parser : extractOptionalQuantity()
+activate Parser
+return quantity
+
+create UpdateCommand
+Parser -> UpdateCommand : new UpdateCommand(...)
+activate UpdateCommand
+return u
+
+return u
+
+PharmaTracker -> UpdateCommand : execute(inventory, ui, customerList)
+activate UpdateCommand
+
+UpdateCommand -> Inventory : getMedication(0)
+activate Inventory
+return med
+
+opt quantity != null
+    UpdateCommand -> Medication : setQuantity(50)
+    activate Medication
+    return
+end
+
+UpdateCommand -> Ui : printUpdatedMedicationMessage(med, changes)
+activate Ui
+return
+
+return
+
+PharmaTracker --> User : displays output
+deactivate PharmaTracker
+@enduml

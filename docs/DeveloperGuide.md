@@ -64,65 +64,11 @@ The following class diagram summarizes the `Ui` component's primary API. *(Note:
 
 ![UI Component Class Diagram](images/UiClassDiagram.png)
 
-### Command Component
-
-{Update with information about Command Architecture}
-
-### Parser Component
-
-{Update with information about Parser Architecture}
-
-### Storage Component
-
-{Update with information about Storage Component}
-
 ## Implementation
 
 This section describes some noteworthy details on how certain features are implemented.
 
-### Integration Glue
-
-The Integration Glue mechanism serves as the architectural "wiring" that connects the medication inventory and patient management systems.
-
-#### Implementation
-
-The `CustomerList` is instantiated within the `PharmaTracker` constructor and loaded from storage during the application boot sequence, mirroring the lifecycle of the `Inventory` object. The critical component of this glue is the injection of the `CustomerList` as a mandatory parameter into the `execute()` method of every command. This ensures that features like the extended `dispense` command can perform atomic operations across both lists—reducing stock and recording the transaction in a single step.
-
-#### Why it is implemented that way
-
-* **Atomicity**: Passing both lists ensures that a transaction is inseparable. This prevents errors where inventory is reduced but the patient record fails to update.
-* **Consistency**: This approach maintains a predictable architecture for the team, as it follows the existing pattern for handling the `Inventory` object.
-
-#### Alternatives Considered
-
-* **Singleton Pattern**: I considered making the lists singletons. This was rejected because it hides dependencies and makes unit testing significantly harder.
-
 ---
-
-### Management of Customers
-
-This foundational data layer serves as the storage and management backbone for all patient-centric features.
-
-#### Implementation
-
-It is composed of two primary classes:
-1.  **`Customer` Model**: Encapsulates clinical and contact data including a unique ID, name, phone, and optional address. It maintains an `ArrayList<String>` designated as `dispensingHistory` which acts as a clinical audit trail.
-2.  **`CustomerList` Manager**: This class wraps an `ArrayList<Customer>` and provides methods for data manipulation, such as `addCustomer()`, `deleteCustomer()`, and `findByName()`.
-
-The following class diagrams illustrates the relationship between the management logic and the data model:
-
-![Class diagram showing the structure of the customers data layer](images/CustomerClassDiagram.png)
-
-![Class diagram showing the relationship between the Customer and CustomerList classes](images/CustomerListClass.png)
-
-#### Why it is implemented that way
-
-* **Encapsulation**: Using a manager class (`CustomerList`) protects the internal list from direct modification and allows for unified index validation across the application.
-* **Single Responsibility Principle**: Separating the data model from the collection logic ensures the code is modular and easier to maintain.
-
-#### Alternatives Considered
-
-* **Unified Inventory**: Storing patients inside the `Inventory` class was rejected to avoid a "God Class" anti-pattern. Keeping them separate makes the code easier to debug and scale.
 
 ### Add Medication Feature
 
@@ -263,6 +209,30 @@ The following sequence diagram shows the full execution flow of the `view` comma
 | `parseInt` in `Parser`, not `execute()` | `Parser` | Fails fast with a parse error before a command object is even created; consistent with how other index-based commands are parsed |
 | Display delegated to `Ui.printMedicationDetails()` | `Ui` | Keeps the command focused on retrieval logic only; consistent with SRP enforced across the codebase |
 
+---
+## Update Medication Feature
+
+The `update` command allows users to modify one or more fields of an existing medication record in the inventory without having to delete and re-add the item. Any field not explicitly specified in the command remains unchanged.
+
+### Command Format
+```
+update INDEX [/n NAME] [/d DOSAGE] [/q QUANTITY] [/e EXPIRY] [/t TAG] [/df DOSAGE_FORM] [/mfr MANUFACTURER] [/dir DIRECTIONS] [/freq FREQUENCY] [/route ROUTE] [/max MAX_DAILY_DOSE] [/warn WARNINGS...]
+```
+
+### How It Works
+
+1. The user enters an update command, e.g., `update 1 /q 50 /t Urgent`.
+2. `PharmaTracker.run()` reads the input and passes the raw string to `Parser.parse()`.
+3. `Parser.parse()` identifies the command word `update`.
+4. The parser isolates the target index and extracts optional flags (e.g., `/n`, `/q`, `/e`) using utility methods like `extractOptionalFlag()` and `extractOptionalQuantity()`. These methods return the updated values or `null` if a flag is absent.
+5. An `UpdateCommand` object is instantiated with the index and the extracted fields. Unspecified fields are passed as `null`.
+6. `PharmaTracker.run()` calls `UpdateCommand.execute()`, which validates the target index against the current size of the inventory. If invalid, an error message is printed and the command returns early.
+7. For a valid index, the corresponding `Medication` object is retrieved from the `Inventory`.
+8. The command sequentially checks each field. If a field is not `null`, the respective setter method (e.g., `setQuantity()`, `setTag()`) is called on the `Medication` object.
+9. As fields are updated, descriptions of the changes are appended to an `ArrayList<String> changes`.
+10. Finally, `Ui.printUpdatedMedicationMessage()` is called with the updated `Medication` and the `changes` list to generate a dynamic success message showing exactly what was modified.
+
+![Sequence diagram showing the execution flow of the Update Command](images/UpdateCommandSequence.png)
 ---
 ### List Medication Feature
 
@@ -645,6 +615,31 @@ The following sequence diagram shows the full execution flow of the `label` comm
 | Direct `System.out` for label body | `System.out` in command | The label block is self-contained formatting; moving it to `Ui` would offer no architectural benefit for a single-command output |
 
 ---
+
+### Management of Customers
+
+This foundational data layer serves as the storage and management backbone for all patient-centric features.
+
+#### Implementation
+
+It is composed of two primary classes:
+1.  **`Customer` Model**: Encapsulates clinical and contact data including a unique ID, name, phone, and optional address. It maintains an `ArrayList<String>` designated as `dispensingHistory` which acts as a clinical audit trail.
+2.  **`CustomerList` Manager**: This class wraps an `ArrayList<Customer>` and provides methods for data manipulation, such as `addCustomer()`, `deleteCustomer()`, and `findByName()`.
+
+The following class diagrams illustrates the relationship between the management logic and the data model:
+
+![Class diagram showing the structure of the customers data layer](images/CustomerClassDiagram.png)
+
+![Class diagram showing the relationship between the Customer and CustomerList classes](images/CustomerListClass.png)
+
+#### Why it is implemented that way
+
+* **Encapsulation**: Using a manager class (`CustomerList`) protects the internal list from direct modification and allows for unified index validation across the application.
+* **Single Responsibility Principle**: Separating the data model from the collection logic ensures the code is modular and easier to maintain.
+
+#### Alternatives Considered
+
+* **Unified Inventory**: Storing patients inside the `Inventory` class was rejected to avoid a "God Class" anti-pattern. Keeping them separate makes the code easier to debug and scale.
 
 ## Product scope
 
