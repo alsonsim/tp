@@ -18,6 +18,7 @@ public class DispenseCommand extends Command {
     public static final String COMMAND_WORD = "dispense";
 
     private static final int NO_CUSTOMER = -1;
+    private static final int MIN_QUANTITY = 1;
 
     private static final Logger logger = Logger.getLogger(DispenseCommand.class.getName());
 
@@ -58,47 +59,148 @@ public class DispenseCommand extends Command {
      */
     @Override
     public void execute(Inventory inventory, Ui ui, CustomerList customerList) {
-        logger.log(Level.INFO, "Executing DispenseCommand: index={0}, quantity={1}",
-                new Object[]{index, quantity});
+        assert inventory != null : "Inventory must not be null";
+        assert ui != null : "Ui must not be null";
+        assert customerList != null : "CustomerList must not be null";
 
-        if (index < 1 || index > inventory.getMedications().size()) {
-            logger.log(Level.WARNING, "Invalid index: {0}", index);
-            System.out.println("Invalid index. Please enter a valid index.");
+        logger.log(Level.INFO, "Executing DispenseCommand: index={0}, quantity={1}, customerIndex={2}",
+                new Object[]{index, quantity, customerIndex});
+
+        if (!isValidQuantity()) {
+            logger.log(Level.WARNING, "Invalid quantity: {0}", quantity);
+            System.out.println("Invalid quantity. Quantity to dispense must be at least 1.");
+            return;
+        }
+
+        if (inventory.getMedications() == null || inventory.getMedications().isEmpty()) {
+            logger.log(Level.WARNING, "Attempted to dispense from empty inventory.");
+            System.out.println("Inventory is empty. No medications to dispense.");
+            return;
+        }
+
+        if (!isValidMedicationIndex(inventory)) {
+            logger.log(Level.WARNING, "Invalid medication index: {0}", index);
+            System.out.println("Invalid index. Please enter a valid medication index.");
             return;
         }
 
         Medication med = inventory.getMedication(index - 1);
 
-        if (quantity > med.getQuantity()) {
+        if (med == null) {
+            logger.log(Level.SEVERE, "Medication at index {0} returned null unexpectedly.", index);
+            System.out.println("An unexpected error occurred. Medication not found.");
+            return;
+        }
+
+        if (!hasSufficientStock(med)) {
             logger.log(Level.WARNING, "Insufficient stock for {0}: requested={1}, available={2}",
                     new Object[]{med.getName(), quantity, med.getQuantity()});
             System.out.println("Insufficient stock. Current stock: " + med.getQuantity());
             return;
         }
 
-        if (customerIndex != NO_CUSTOMER && (customerIndex < 1 || customerIndex > customerList.size())) {
+        if (isCustomerLinked() && !isValidCustomerIndex(customerList)) {
             logger.log(Level.WARNING, "Invalid customer index: {0}", customerIndex);
-            System.out.println("Invalid customer index. Please enter a valid index.");
+            System.out.println("Invalid customer index. Please enter a valid customer index.");
             return;
         }
 
-        med.setQuantity(med.getQuantity() - quantity);
+        performDispense(med);
+
+        if (isCustomerLinked()) {
+            linkToCustomer(med, customerList);
+        }
+    }
+
+    /**
+     * Reduces the medication stock and prints the dispense confirmation.
+     *
+     * @param med The medication to dispense from.
+     */
+    private void performDispense(Medication med) {
+        int updatedStock = med.getQuantity() - quantity;
+        med.setQuantity(updatedStock);
+
         logger.log(Level.INFO, "Dispensed {0} units of {1}. Updated stock: {2}",
-                new Object[]{quantity, med.getName(), med.getQuantity()});
+                new Object[]{quantity, med.getName(), updatedStock});
 
         System.out.println("Dispensing successfully!");
         System.out.println("Medication: " + med.getName());
         System.out.println("Amount: " + quantity + " units");
-        System.out.println("Updated Stock: " + med.getQuantity() + " units");
+        System.out.println("Updated Stock: " + updatedStock + " units");
+    }
 
-        if (customerIndex != NO_CUSTOMER) {
-            Customer customer = customerList.getCustomer(customerIndex - 1);
-            String record = med.getName() + " | " + med.getDosage()
-                    + " | Qty: " + quantity;
-            customer.addDispensingHistory(record);
-            logger.log(Level.INFO, "Linked dispense to customer: {0}", customer.getName());
-            System.out.println("Recorded for customer: [" + customer.getCustomerId() + "] "
-                    + customer.getName() + ".");
+    /**
+     * Records the dispense event in the linked customer's history and prints confirmation.
+     *
+     * @param med          The medication that was dispensed.
+     * @param customerList The list of registered customers.
+     */
+    private void linkToCustomer(Medication med, CustomerList customerList) {
+        Customer customer = customerList.getCustomer(customerIndex - 1);
+
+        if (customer == null) {
+            logger.log(Level.SEVERE, "Customer at index {0} returned null unexpectedly.", customerIndex);
+            System.out.println("An unexpected error occurred. Customer record not updated.");
+            return;
         }
+
+        String dosage = (med.getDosage() != null && !med.getDosage().isEmpty())
+                ? med.getDosage()
+                : "N/A";
+        String record = med.getName() + " | " + dosage + " | Qty: " + quantity;
+        customer.addDispensingHistory(record);
+
+        logger.log(Level.INFO, "Linked dispense to customer: {0}", customer.getName());
+        System.out.println("Recorded for customer: [" + customer.getCustomerId() + "] "
+                + customer.getName() + ".");
+    }
+
+    /**
+     * Returns true if the dispense quantity is at least the minimum allowed value.
+     *
+     * @return true if quantity is valid.
+     */
+    private boolean isValidQuantity() {
+        return quantity >= MIN_QUANTITY;
+    }
+
+    /**
+     * Returns true if the medication index is within the bounds of the inventory.
+     *
+     * @param inventory The current medication inventory.
+     * @return true if index is valid.
+     */
+    private boolean isValidMedicationIndex(Inventory inventory) {
+        return index >= 1 && index <= inventory.getMedications().size();
+    }
+
+    /**
+     * Returns true if the medication has enough stock to fulfill the dispense request.
+     *
+     * @param med The target medication.
+     * @return true if stock is sufficient.
+     */
+    private boolean hasSufficientStock(Medication med) {
+        return quantity <= med.getQuantity();
+    }
+
+    /**
+     * Returns true if this command is linked to a customer.
+     *
+     * @return true if customerIndex is not NO_CUSTOMER.
+     */
+    private boolean isCustomerLinked() {
+        return customerIndex != NO_CUSTOMER;
+    }
+
+    /**
+     * Returns true if the customer index is within the bounds of the customer list.
+     *
+     * @param customerList The list of registered customers.
+     * @return true if customer index is valid.
+     */
+    private boolean isValidCustomerIndex(CustomerList customerList) {
+        return customerIndex >= 1 && customerIndex <= customerList.size();
     }
 }
