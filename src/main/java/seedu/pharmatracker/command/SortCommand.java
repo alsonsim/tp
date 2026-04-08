@@ -17,6 +17,7 @@ import seedu.pharmatracker.customer.CustomerList;
  * Sorts medications in the inventory by expiry date.
  * Medications with invalid expiry dates are treated as having the latest possible expiry date.
  */
+//@@author yaqi66
 public class SortCommand extends Command {
 
     public static final String COMMAND_WORD = "sort";

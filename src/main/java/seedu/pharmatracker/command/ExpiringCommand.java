@@ -18,6 +18,7 @@ import seedu.pharmatracker.customer.CustomerList;
  * Defaults to 30 days if no custom window is provided.
  * Medications are separated into two categories: already expired and expiring soon.
  */
+//@@author yihernggggg
 public class ExpiringCommand extends Command {
 
     public static final String COMMAND_WORD = "expiring";

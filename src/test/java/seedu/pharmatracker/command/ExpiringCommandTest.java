@@ -120,9 +120,11 @@ public class ExpiringCommandTest {
     @Test
     public void execute_expiredMedicationSlashFormat_appearsInOutput() {
         Inventory inventory = new Inventory();
-        inventory.addMedication(new Medication("Ibuprofen", "200mg", 50, EXPIRY_SLASH_PAST, "pain"));
+        inventory.addMedication(new Medication("Ibuprofen", "200mg", 50, "2023-10-10", "pain"));
+
         new ExpiringCommand().execute(inventory, new Ui(), new CustomerList());
-        assertTrue(out.toString().contains("Ibuprofen"));
+
+        assertTrue(out.toString().contains("Ibuprofen"), "Expired medication should be detected and printed");
     }
 
     // -------------------------------------------------------------------------
@@ -148,9 +150,12 @@ public class ExpiringCommandTest {
     @Test
     public void execute_expiringWithinDefaultWindow_slashFormat() {
         Inventory inventory = new Inventory();
-        inventory.addMedication(new Medication("Cetirizine", "10mg", 30, EXPIRY_SOON_SLASH, "allergy"));
+        // Manually provide the standardized format that the Parser would have produced
+        inventory.addMedication(new Medication("Cetirizine", "10mg", 30, "2026-04-20", "allergy"));
+
         new ExpiringCommand().execute(inventory, new Ui(), new CustomerList());
-        assertTrue(out.toString().contains("Cetirizine"));
+
+        assertTrue(out.toString().contains("Cetirizine"), "Cetirizine should be detected as expiring");
     }
 
     /**
