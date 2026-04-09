@@ -343,6 +343,26 @@ The `add-customer` command allows users to register a new customer profile in th
 
 ---
 
+### Delete Customer Feature
+
+The `delete-customer` command allows users to remove an existing customer profile from the database. The customer to be removed is identified by their 1-based index as displayed in the current customer list.
+
+#### How it works
+
+1. The user enters a delete customer command into the command line, specifying the index of the customer (e.g., `delete-customer 1`).
+2. `PharmaTracker.run()` reads the raw input string using `ui.readCommand()`.
+3. `PharmaTracker` passes the string to `PharmaTrackerParser.parse()`.
+4. `PharmaTrackerParser` identifies the `delete-customer` command word. Because this command only requires a single index argument, the parser directly extracts the provided index string and instantiates a new `DeleteCustomerCommand` object with this description string, without needing a dedicated sub-parser.
+5. `PharmaTracker` calls the `execute()` method on the newly created `DeleteCustomerCommand`.
+6. Inside the `execute()` method, the string description is parsed into an integer. If the string is not a valid number, a `NumberFormatException` is caught and an error message is displayed to the user.
+7. The command then validates the parsed index. If it is within the valid range of 1 to `customerList.getCustomerCount()`, the 1-based index is converted to a 0-based index to match the internal `ArrayList` structure.
+8. The specific `Customer` object is retrieved from the `CustomerList` using the `getCustomer(zeroBasedIndex)` method.
+9. The retrieved `Customer` object is passed to `customerList.removeCustomer()`, which deletes the record from the internal list and safely decrements the total customer count.
+10. Finally, the `DeleteCustomerCommand` calls `ui.printDeletedCustomerMessage()` to display a success message and the updated customer tally to the user.
+
+![Sequence diagram showing the execution flow of the Delete Customer Command](images/DeleteCustomerCommandSequence.png)
+---
+
 ### List Customers Feature
 
 The `list-customers` command retrieves and displays all registered customers with their

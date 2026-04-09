@@ -1,0 +1,67 @@
+@startuml
+skinparam ArrowFontStyle plain
+skinparam maxMessageSize 100
+
+actor User
+participant ":PharmaTracker" as PharmaTracker
+participant ":Ui" as Ui
+participant ":PharmaTrackerParser" as PTP
+participant "d:DeleteCustomerCommand" as DeleteCustCmd
+participant "customerList:CustomerList" as CustomerList
+
+User -> PharmaTracker : "delete-customer 1"
+activate PharmaTracker
+
+PharmaTracker -> Ui : readCommand()
+activate Ui
+Ui --> PharmaTracker : fullCommand
+deactivate Ui
+
+PharmaTracker -> PTP : parse(fullCommand)
+activate PTP
+
+note right of PTP
+  No sub-parser is needed since
+  only a single index is provided.
+end note
+
+create DeleteCustCmd
+PTP -> DeleteCustCmd : new DeleteCustomerCommand("1")
+activate DeleteCustCmd
+DeleteCustCmd --> PTP : d
+deactivate DeleteCustCmd
+
+PTP --> PharmaTracker : d
+deactivate PTP
+
+PharmaTracker -> DeleteCustCmd : execute(inv, ui, customerList)
+activate DeleteCustCmd
+
+note right of DeleteCustCmd
+  The string description "1" is parsed
+  into an integer here. If invalid, an
+  error is printed and execution stops.
+end note
+
+DeleteCustCmd -> CustomerList : getCustomer(0)
+activate CustomerList
+CustomerList --> DeleteCustCmd : customer
+deactivate CustomerList
+
+DeleteCustCmd -> CustomerList : removeCustomer(customer)
+activate CustomerList
+CustomerList --> DeleteCustCmd
+deactivate CustomerList
+
+DeleteCustCmd -> Ui : printDeletedCustomerMessage(customer, customerList)
+activate Ui
+Ui --> DeleteCustCmd
+deactivate Ui
+
+DeleteCustCmd --> PharmaTracker
+deactivate DeleteCustCmd
+DeleteCustCmd -[hidden]-> PTP
+destroy DeleteCustCmd
+
+deactivate PharmaTracker
+@enduml

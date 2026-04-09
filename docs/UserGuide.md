@@ -478,6 +478,15 @@ Removes an existing customer from the pharmacy's database.
 **Examples:**
 * `list-customers` followed by `delete-customer 2`: Deletes the 2nd customer shown in the complete customer list.
 
+**Example Output:**
+```
+____________________________________________________________
+You have removed the following customer:
+  [C005] Invalid Ian | Phone: 91234567 | Address: 10 Test Street | Allergies: |
+You now have 8 customers in your database!
+____________________________________________________________
+```
+
 ---
 
 ### List all customers: `list-customers`
