@@ -473,31 +473,21 @@ public class Ui {
         System.out.println("14. View Active Alerts       (alerts)");
         System.out.println("15. Acknowledge Alert        (ack-alert ALERT_INDEX)");
         System.out.println("16. View Alert History       (alert-history)");
+        System.out.println("17. Daily Dispense Log       (dispenselog | dispenselog /date YYYY-MM-DD)");
         System.out.println("--- Customer Commands ---");
-        System.out.println("17. Add Customer             (add-customer /n NAME /p PHONE /a ADDRESS)");
-        System.out.println("18. Delete Customer          (delete-customer INDEX)");
-        System.out.println("19. Update Customer          (update-customer INDEX /n NAME /p PHONE /a ADDRESS)");
-        System.out.println("20. List Customers           (list-customers)");
-        System.out.println("21. Find Customer            (find-customer KEYWORD)");
-        System.out.println("22. View Customer            (view-customer INDEX)");
+        System.out.println("18. Add Customer             (add-customer /n NAME /p PHONE /a ADDRESS)");
+        System.out.println("19. Delete Customer          (delete-customer INDEX)");
+        System.out.println("20. Update Customer          (update-customer INDEX /n NAME /p PHONE /a ADDRESS)");
+        System.out.println("21. List Customers           (list-customers)");
+        System.out.println("22. Find Customer            (find-customer KEYWORD)");
+        System.out.println("23. View Customer            (view-customer INDEX)");
         System.out.println("--- Authentication ---");
-        System.out.println("23. Register                 (register USERNAME /p PASSWORD)");
-        System.out.println("24. Login                    (login USERNAME /p PASSWORD)");
-        System.out.println("25. Logout                   (logout)");
+        System.out.println("24. Register                 (register USERNAME /p PASSWORD)");
+        System.out.println("25. Login                    (login USERNAME /p PASSWORD)");
+        System.out.println("26. Logout                   (logout)");
         System.out.println("--- General ---");
-        System.out.println("26. Viewing Help             (help)");
-        System.out.println("27. Exiting the Program      (exit)");
-        System.out.println("13. Daily Dispense Log       (dispenselog | dispenselog /date YYYY-MM-DD)");
-        System.out.println("--- Customer Commands ---");
-        System.out.println("14. Add Customer             (add-customer /n NAME /p PHONE /a ADDRESS)");
-        System.out.println("15. Delete Customer          (delete-customer INDEX)");
-        System.out.println("16. Update Customer          (update-customer INDEX /n NAME /p PHONE /a ADDRESS)");
-        System.out.println("17. List Customers           (list-customers)");
-        System.out.println("18. Find Customer            (find-customer KEYWORD)");
-        System.out.println("19. View Customer            (view-customer INDEX)");
-        System.out.println("--- General ---");
-        System.out.println("20. Viewing Help             (help)");
-        System.out.println("21. Exiting the Program      (exit)");
+        System.out.println("27. Viewing Help             (help)");
+        System.out.println("28. Exiting the Program      (exit)");
     }
 
     /**
