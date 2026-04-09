@@ -30,6 +30,7 @@ public class PharmaTracker {
         ui = new Ui();
         storage = new Storage();
         inventory = storage.load();
+        inventory.setDispenseLog(storage.loadDispenseLog());
         customerList = storage.loadCustomers();
     }
 
@@ -54,6 +55,7 @@ public class PharmaTracker {
                     c.execute(inventory, ui, customerList);
                     storage.save(inventory);
                     storage.saveCustomers(customerList);
+                    storage.saveDispenseLog(inventory.getDispenseLog());
                 }
             } catch (PharmaTrackerException e) {
                 ui.printMessage(e.getMessage());
