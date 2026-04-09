@@ -58,6 +58,13 @@ public class AddCustomerCommand extends Command {
 
         logger.log(Level.INFO, "Starting execution of AddCustomerCommand for customer: " + name);
 
+        for (int i = 0; i < customerList.size(); i++) {
+            if (customerList.getCustomer(i).getCustomerId().equalsIgnoreCase(customerId)) {
+                ui.printMessage("Error: A customer with ID " + customerId + " already exists.");
+                return;
+            }
+        }
+
         Customer customer = new Customer(customerId, name, phone, address);
         customerList.addCustomer(customer);
         ui.printAddedCustomerMessage(customer, customerList);
