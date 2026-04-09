@@ -1,5 +1,47 @@
 # User Guide
 
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Quick Start](#quick-start)
+- [Features](#features)
+  - [Notes on command format](#notes-on-command-format)
+- [Medication Commands](#medication-commands)
+  - [Add a medication: `add`](#add-a-medication-add)
+  - [Delete a medication: `delete`](#delete-a-medication-delete)
+  - [List all medications: `list`](#list-all-medications-list)
+  - [Find a medication: `find`](#find-a-medication-find)
+  - [View medication details: `view`](#view-medication-details-view)
+  - [Dispense a medication: `dispense`](#dispense-a-medication-dispense)
+  - [Restock a medication: `restock`](#restock-a-medication-restock)
+  - [Update a medication: `update`](#update-a-medication-update)
+  - [Sort medications by expiry: `sort`](#sort-medications-by-expiry-sort)
+  - [Check for expiring medications: `expiring`](#check-for-expiring-medications-expiring)
+  - [Check low stock: `lowstock`](#check-low-stock-lowstock)
+  - [Print a medication label: `label`](#print-a-medication-label-label)
+  - [View daily dispense log: `dispenselog`](#view-daily-dispense-log-dispenselog)
+- [Customer Commands](#customer-commands)
+  - [Add a customer: `add-customer`](#add-a-customer-add-customer)
+  - [Delete a customer: `delete-customer`](#delete-a-customer-delete-customer)
+  - [List all customers: `list-customers`](#list-all-customers-list-customers)
+  - [Find a customer: `find-customer`](#find-a-customer-find-customer)
+  - [View customer details: `view-customer`](#view-customer-details-view-customer)
+  - [Update a customer: `update-customer`](#update-a-customer-update-customer)
+- [Authentication Commands](#authentication-commands)
+  - [Register an account: `register`](#register-an-account-register)
+  - [Login: `login`](#login-login)
+  - [Logout: `logout`](#logout-logout)
+- [Auto Restock Alert Commands](#auto-restock-alert-commands)
+  - [Set a medication threshold: `set-threshold`](#set-a-medication-threshold-set-threshold)
+  - [View active alerts: `alerts`](#view-active-alerts-alerts)
+  - [Acknowledge an alert: `ack-alert`](#acknowledge-an-alert-ack-alert)
+  - [View alert history: `alert-history`](#view-alert-history-alert-history)
+- [General Commands](#general-commands)
+  - [View help: `help`](#view-help-help)
+  - [Exit the application: `exit`](#exit-the-application-exit)
+- [FAQ](#faq)
+- [Command Summary](#command-summary)
+
 ## Introduction
 PharmaTracker is a command-line application for pharmacy staff to manage medication inventory and customer records. It supports adding, finding, dispensing, and restocking medications, as well as managing customer information and tracking dispensing history.
 
@@ -410,6 +452,16 @@ Registers a new customer into the pharmacy's database.
 * `add-customer /id C001 /n John Doe /p 98765432`
 * `add-customer /id C002 /n Jane Smith /p 91234567 /a 123 Clementi Road, #04-56`
 
+**Example Output:**
+
+```
+____________________________________________________________
+You have added the following customer:
+  [C002] Jane Smith | Phone: 91234567 /a 123 Clementi Road, #04-56
+You now have 9 customers in your database!
+____________________________________________________________
+```
+
 ---
 
 ### Delete a customer: `delete-customer`
@@ -460,6 +512,41 @@ Total Customers: 3.
 ```
 PharmaTracker Customers:
 No customers registered yet.
+```
+
+---
+
+### Find a customer: `find-customer`
+
+Searches the customer list for customers whose names contain the given keyword.
+The search is case-insensitive and supports partial matches.
+
+**Format:** `find-customer KEYWORD`
+
+**Rules & Constraints:**
+* `KEYWORD` is matched against each customer's name using a case-insensitive partial match.
+* A keyword like `tan` will return all customers whose name contains "tan" (e.g., `John Tan`, `Mary Tan`).
+* If no customers match, a message is shown and no list is displayed.
+* `KEYWORD` cannot be empty.
+
+**Examples:**
+* `find-customer John`
+* `find-customer tan`
+
+**Example — matches found:**
+
+```
+Customers matching "tan":
+1. [C001] John Tan | Phone: 99887766
+2. [C002] Mary Tan | Phone: 87654321
+------------------------------------------------------
+2 customer(s) found.
+```
+
+**Example — no matches:**
+
+```
+No customers found matching: xyz
 ```
 
 ---
@@ -665,6 +752,7 @@ A: PharmaTracker will display an error message and leave the inventory or custom
 | Daily dispense log  | `dispenselog [/date YYYY-MM-DD]` |
 | Add customer        | `add-customer /id ID /n NAME /p PHONE /addr ADDRESS` |
 | List customers      | `list-customers` |
+| Find customer       | `find-customer KEYWORD` |
 | View customer       | `view-customer INDEX` |
 | Update customer     | `update-customer INDEX [/n NAME] [/p PHONE] [/a ADDRESS]` |
 | Delete customer     | `delete-customer INDEX`     |
