@@ -68,10 +68,6 @@ To maintain a clean architecture, the UI component is strictly separated from th
 * **No Direct Printing:** Developers should **never** use `System.out.println()` directly within `Command`, `Parser`, or `Inventory` classes.
 * **Data Handoff:** If a command needs to display a result, it must process the data and pass the relevant object to a specific method inside the `Ui` class to handle the actual printing.
 
-The following class diagram summarizes the `Ui` component's primary API. *(Note: Private string constants and standard constructors are omitted to reduce visual clutter).*
-
-![UI Component Class Diagram](images/UiClassDiagram.png)
-
 ## Implementation
 
 This section describes some noteworthy details on how certain features are implemented.
@@ -125,17 +121,13 @@ delete INDEX
 The following steps describe how a delete command is processed.
 
 1. The user enters a delete command into the command line, specifying the index of the medication (e.g. `delete 1`)
-2. The Ui component reads the raw input string and passes it to the `PharmaTracker` main loop.
-3. `PharmaTracker` calls the `Parser.parse()` method with the input string.
-4. The `Parser` identifies that the `delete` command word, extracts the provided index string, and instantiates a
-   new `DeleteCommand` object with this description.
+2. `PharmaTracker.run()` reads the raw input string using `ui.readCommand()`.
+3. `PharmaTracker` passes the string to `PharmaTrackerParser.parse()`.
+4. `PharmaTrackerParser` identifies the `delete` command word, extracts the provided index string, and instantiates a new `DeleteCommand` object with this description.
 5. `PharmaTracker` calls the `execute(inventory, ui, customerList)` method on the newly created `DeleteCommand`.
-6. Inside the `execute` method, the string index is parsed into an integer and converted from a 1-based index to a
-   0-based index to match the internal `ArrayList` logic.
-7. The specific `Medication` object is retrieved from the `Inventory` using the `getMedication(zeroBasedIndex)`
-   method.
-8. The retrieved `Medication` object is passed to `inventory.removeMedication()`, which deletes it from the internal
-   list and decrements the medication count.
+6. Inside the `execute` method, the string index is parsed into an integer and converted from a 1-based index to a 0-based index to match the internal `ArrayList` logic.
+7. The specific `Medication` object is retrieved from the `Inventory` using the `getMedication(zeroBasedIndex)`method.
+8. The retrieved `Medication` object is passed to `inventory.removeMedication()`, which deletes it from the internal list and decrements the medication count.
 9. The `DeleteCommand` calls `ui.printDeletedMessage()` to display a success message to the user.
 
 ![Sequence diagram showing the execution flow of the Delete Command](images/DeleteCommandSequence.png)
