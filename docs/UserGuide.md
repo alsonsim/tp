@@ -530,7 +530,7 @@ PharmaTracker Customers:
 1. [C001] John Tan | Phone: 99887766
 2. [C002] Mary Tan | Phone: 87654321 | Address: 10 Orchard Road
 3. [C003] David Ng | Phone: 93456789 | Allergies: penicillin
-3. [C003] El Primo | Phone: 64363459 | Address: 10 Orchard Road | Allergies: penicillin
+4. [C004] El Primo | Phone: 64363459 | Address: 10 Orchard Road | Allergies: penicillin
 ------------------------------------------------------
 Total Customers: 3.
 ```
