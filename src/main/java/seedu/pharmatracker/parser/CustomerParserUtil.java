@@ -13,7 +13,7 @@ public class CustomerParserUtil {
     public static final String FLAG_ID = "/id";
     public static final String FLAG_NAME = "/n";
     public static final String FLAG_PHONE = "/p";
-    public static final String FLAG_ADDRESS = "/address";
+    public static final String FLAG_ADDRESS = "/addr";
     public static final String FLAG_ALLERGY = "/allergy";
 
     static final String[] CUSTOMER_UPDATE_FLAGS = {FLAG_NAME, FLAG_PHONE, FLAG_ADDRESS, FLAG_ALLERGY};
