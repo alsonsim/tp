@@ -9,7 +9,11 @@ import seedu.pharmatracker.auth.AuthService;
 import seedu.pharmatracker.logger.LoggerSetup;
 
 import seedu.pharmatracker.command.Command;
+import seedu.pharmatracker.command.ExitCommand;
+import seedu.pharmatracker.command.HelpCommand;
+import seedu.pharmatracker.command.LoginCommand;
 import seedu.pharmatracker.command.LogoutCommand;
+import seedu.pharmatracker.command.RegisterCommand;
 import seedu.pharmatracker.data.Inventory;
 import seedu.pharmatracker.core.AppServices;
 import seedu.pharmatracker.storage.Storage;
@@ -69,6 +73,13 @@ public class PharmaTracker {
         while (true) {
             String fullCommand = ui.readCommand();
             try {
+                String commandWord = extractCommandWord(fullCommand);
+                if (shouldBlockBeforeParsing(commandWord)) {
+                    ui.printMessage("Authentication required. Use: register USERNAME /p PASSWORD or "
+                            + "login USERNAME /p PASSWORD");
+                    continue;
+                }
+
                 Command c = parse(fullCommand);
                 if (c != null) {
                     if (c.requiresAuthentication() && !authService.isAuthenticated()) {
@@ -100,6 +111,54 @@ public class PharmaTracker {
                 ui.printMessage(e.getMessage());
             }
         }
+    }
+
+    /**
+     * Extracts the lowercase command word from raw user input.
+     *
+     * @param fullCommand Raw command entered by the user.
+     * @return Lowercase command word, or empty string if input is blank.
+     */
+    private String extractCommandWord(String fullCommand) {
+        if (fullCommand == null) {
+            return "";
+        }
+
+        String trimmed = fullCommand.trim();
+        if (trimmed.isEmpty()) {
+            return "";
+        }
+
+        String[] inputParts = trimmed.split("\\s+", 2);
+        return inputParts[0].toLowerCase();
+    }
+
+    /**
+     * Returns true when an unauthenticated user should be blocked before parsing.
+     *
+     * @param commandWord Lowercase command word extracted from input.
+     * @return True if authentication is required before parser-level validation.
+     */
+    private boolean shouldBlockBeforeParsing(String commandWord) {
+        if (authService.isAuthenticated()) {
+            return false;
+        }
+
+        return !isPublicCommand(commandWord);
+    }
+
+    /**
+     * Returns true if the command can be used while unauthenticated.
+     *
+     * @param commandWord Lowercase command word.
+     * @return True for commands that remain available before login.
+     */
+    private boolean isPublicCommand(String commandWord) {
+        return RegisterCommand.COMMAND_WORD.equals(commandWord)
+                || LoginCommand.COMMAND_WORD.equals(commandWord)
+                || HelpCommand.COMMAND_WORD.equals(commandWord)
+                || ExitCommand.COMMAND_WORD.equals(commandWord)
+                || LogoutCommand.COMMAND_WORD.equals(commandWord);
     }
 
     /**
