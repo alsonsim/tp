@@ -138,8 +138,8 @@ public class PharmaTrackerParser {
                     String daysStr = description.substring(
                             description.indexOf("/days") + "/days".length()).trim();
                     int days = Integer.parseInt(daysStr);
-                    if (days <= 0) {
-                        throw new PharmaTrackerException("Number of days must be a positive integer.");
+                    if (days < 0) {
+                        throw new PharmaTrackerException("Number of days must be a non-negative integer.");
                     }
                     return new ExpiringCommand(days);
                 } catch (NumberFormatException e) {
