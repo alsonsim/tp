@@ -257,8 +257,10 @@ public class Ui {
      */
     public void showExpiringMedications(ArrayList<Medication> expiredMeds,
                                         ArrayList<Medication> expiringMeds, int days) {
+        System.out.println(DIVIDER);
         if (expiredMeds.isEmpty() && expiringMeds.isEmpty()) {
             System.out.println("No expired or expiring medications found.");
+            System.out.println(DIVIDER);
             return;
         }
 
@@ -278,6 +280,7 @@ public class Ui {
             }
             System.out.println("Total: " + expiringMeds.size() + " medication(s) expiring soon.");
         }
+        System.out.println(DIVIDER);
     }
 
     /**

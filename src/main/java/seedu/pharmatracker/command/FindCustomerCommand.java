@@ -39,6 +39,12 @@ public class FindCustomerCommand extends Command {
     @Override
     public void execute(Inventory inventory, Ui ui, CustomerList customerList) {
         assert keyword != null : "Search keyword cannot be null";
+
+        if (keyword.isEmpty()) {
+            ui.printMessage("Please provide a name to search for.");
+            return;
+        }
+
         logger.info("Executing FindCustomerCommand with keyword: " + keyword);
 
         ArrayList<Customer> matches = customerList.findByName(keyword);

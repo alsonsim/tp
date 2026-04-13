@@ -63,22 +63,19 @@ public class PharmaTrackerParser {
 
         case FindCommand.COMMAND_WORD:
             if (description.isEmpty()) {
-                System.out.println("Please provide a keyword to search for.");
-                break;
+                throw new PharmaTrackerException("Please provide a keyword to search for.");
             }
             return new FindCommand(description);
 
         case ViewCommand.COMMAND_WORD:
             if (description.isEmpty()) {
-                System.out.println("Please provide an index to view.");
-                break;
+                throw new PharmaTrackerException("Please provide an index to view.");
             }
             try {
                 int index = Integer.parseInt(description.trim());
                 return new ViewCommand(index);
             } catch (NumberFormatException e) {
-                System.out.println("Invalid index. Please enter a valid number.");
-                break;
+                throw new PharmaTrackerException("Invalid index. Please enter a valid number.");
             }
 
         case DispenseCommand.COMMAND_WORD:
@@ -142,17 +139,14 @@ public class PharmaTrackerParser {
                             description.indexOf("/days") + "/days".length()).trim();
                     int days = Integer.parseInt(daysStr);
                     if (days <= 0) {
-                        System.out.println("Number of days must be a positive integer.");
-                        return null;
+                        throw new PharmaTrackerException("Number of days must be a positive integer.");
                     }
                     return new ExpiringCommand(days);
                 } catch (NumberFormatException e) {
-                    System.out.println("Invalid number of days. Usage: expiring /days NUMBER");
-                    return null;
+                    throw new PharmaTrackerException("Invalid number of days. Usage: expiring /days NUMBER");
                 }
             }
-            System.out.println("Invalid format. Usage: expiring or expiring /days NUMBER");
-            return null;
+            throw new PharmaTrackerException("Invalid format. Usage: expiring or expiring /days NUMBER");
 
         case UpdateCommand.COMMAND_WORD:
             return new UpdateCommandParser().parse(description);
@@ -192,7 +186,7 @@ public class PharmaTrackerParser {
 
         case FindCustomerCommand.COMMAND_WORD:
             if (description.trim().isEmpty()) {
-                System.out.println("Please provide a name to search for. Usage: find-customer <name>");
+                throw new PharmaTrackerException("Please provide a name to search for. Usage: find-customer <name>");
             }
             return new FindCustomerCommand(description.trim());
 
@@ -201,8 +195,7 @@ public class PharmaTrackerParser {
                 int index = Integer.parseInt(description.trim());
                 return new ViewCustomerCommand(index);
             } catch (NumberFormatException e) {
-                System.out.println("Invalid format. Usage: view-customer INDEX");
-                return null;
+                throw new PharmaTrackerException("Invalid format. Usage: view-customer INDEX");
             }
 
         case RestockCommand.COMMAND_WORD:

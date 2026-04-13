@@ -44,12 +44,12 @@ public class ViewCustomerCommand extends Command {
         assert ui != null : "Ui cannot be null in ViewCustomerCommand";
 
         if (customerList.size() == 0) {
-            System.out.println("No customers registered yet.");
+            ui.printMessage("No customers registered yet.");
             return;
         }
 
         if (index < 1 || index > customerList.size()) {
-            System.out.println("Invalid index. Please enter a number between 1 and "
+            ui.printMessage("Invalid index. Please enter a number between 1 and "
                     + customerList.size() + ".");
             return;
         }

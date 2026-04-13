@@ -44,13 +44,13 @@ public class ViewCommand extends Command {
 
         if (inventory.getMedications().isEmpty()) {
             logger.log(Level.WARNING, "Attempted to view medication from empty inventory.");
-            System.out.println("Inventory is empty.");
+            ui.printMessage("Inventory is empty.");
             return;
         }
         if (index < 1 || index > inventory.getMedications().size()) {
             logger.log(Level.WARNING, "Invalid index provided: " + index
                 + ". Valid range: 1 to " + inventory.getMedications().size());
-            System.out.println("Invalid index. Please enter a number between 1 and "
+            ui.printMessage("Invalid index. Please enter a number between 1 and "
                     + inventory.getMedications().size() + ".");
             return;
         }

@@ -55,7 +55,7 @@ public class FindCommand extends Command {
 
         if (matchingMedications.isEmpty()) {
             logger.log(Level.INFO, "No medications found matching keyword: " + keyword);
-            System.out.println("No medications found matching: " + keyword);
+            ui.printMessage("No medications found matching: " + keyword);
             return;
         }
 
