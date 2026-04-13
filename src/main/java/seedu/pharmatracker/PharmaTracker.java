@@ -11,6 +11,7 @@ import seedu.pharmatracker.logger.LoggerSetup;
 import seedu.pharmatracker.command.Command;
 import seedu.pharmatracker.command.ExitCommand;
 import seedu.pharmatracker.command.HelpCommand;
+import seedu.pharmatracker.command.ListCommand;
 import seedu.pharmatracker.command.LoginCommand;
 import seedu.pharmatracker.command.LogoutCommand;
 import seedu.pharmatracker.command.RegisterCommand;
@@ -66,6 +67,10 @@ public class PharmaTracker {
         ui.printWelcomeMessage();
         if (authService.isAuthenticated()) {
             ui.printMessage("Restored session for user: " + authService.getCurrentUsername());
+            ArrayList<RestockAlert> activeAlerts = restockAlertService.getActiveAlerts();
+            if (!activeAlerts.isEmpty()) {
+                ui.printAutoRestockAlertSummary(activeAlerts);
+            }
         } else {
             ui.printMessage("Please login or register to use PharmaTracker features.");
         }
@@ -99,7 +104,7 @@ public class PharmaTracker {
                     storage.saveSession(authService.getCurrentUsername());
                     storage.saveAlertHistory(restockAlertService.getAlertHistory());
 
-                    if (authService.isAuthenticated()) {
+                    if (authService.isAuthenticated() && c instanceof ListCommand) {
                         ArrayList<RestockAlert> activeAlerts = restockAlertService.getActiveAlerts();
                         if (!activeAlerts.isEmpty()) {
                             ui.printAutoRestockAlertSummary(activeAlerts);
