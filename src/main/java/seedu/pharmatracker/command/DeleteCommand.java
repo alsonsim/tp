@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import seedu.pharmatracker.data.Inventory;
 import seedu.pharmatracker.data.Medication;
+import seedu.pharmatracker.exceptions.PharmaTrackerException;
 import seedu.pharmatracker.ui.Ui;
 import seedu.pharmatracker.customer.CustomerList;
 
@@ -36,17 +37,22 @@ public class DeleteCommand extends Command {
      * @param ui        The user interface used to display messages and interact with the user.
      */
     @Override
-    public void execute(Inventory inventory, Ui ui, CustomerList customerList) {
+    public void execute(Inventory inventory, Ui ui, CustomerList customerList) throws PharmaTrackerException {
         logger.log(Level.INFO, "Starting execution of DeleteCommand for index: " + description);
 
         assert inventory != null : "Inventory cannot be null in DeleteCommand";
         assert ui != null : "Ui cannot be null in DeleteCommand";
 
+        int medicationCount = inventory.getMedicationCount();
+
+        if (medicationCount == 0) {
+            throw new PharmaTrackerException("Inventory is empty! There is nothing to delete.");
+        }
+
         try {
             int index = Integer.parseInt(description);
             if (index < 1 || index > inventory.getMedicationCount()) {
-                System.out.println("Invalid index. Please enter a number between 1 and "
-                        + inventory.getMedicationCount() + ".");
+                System.out.println("Invalid index. Please enter a number between 1 and " + medicationCount + ".");
                 return;
             }
             int zeroBasedIndex = index - 1;
@@ -57,8 +63,13 @@ public class DeleteCommand extends Command {
 
             logger.log(Level.INFO, "Successfully executed DeleteCommand.");
         } catch (NumberFormatException e) {
-            System.out.println("Invalid format. Please provide a valid number for the index.");
             logger.log(Level.WARNING, "Failed to parse index in DeleteCommand: " + description);
+            if (description.trim().matches("-?\\d+")) {
+                throw new PharmaTrackerException("Invalid index. Please enter a number between 1 and " +
+                        medicationCount + ".");
+            } else {
+                throw new PharmaTrackerException("Invalid format. Please provide a valid number for the index. ");
+            }
         }
     }
 }

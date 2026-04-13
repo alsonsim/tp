@@ -1,6 +1,7 @@
 package seedu.pharmatracker.command;
 
 import seedu.pharmatracker.data.Inventory;
+import seedu.pharmatracker.exceptions.PharmaTrackerException;
 import seedu.pharmatracker.ui.Ui;
 import seedu.pharmatracker.customer.CustomerList;
 
@@ -18,7 +19,7 @@ public abstract class Command {
      * @param ui           The user interface for displaying messages.
      * @param customerList The list of registered customers.
      */
-    public abstract void execute(Inventory inventory, Ui ui, CustomerList customerList);
+    public abstract void execute(Inventory inventory, Ui ui, CustomerList customerList) throws PharmaTrackerException;
 
     /**
      * Returns whether this command requires an authenticated session.
