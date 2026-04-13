@@ -80,6 +80,12 @@ public class PharmaTrackerParserTest {
     @Test
     public void parser_restockWithLegacyQSlash_returnsNull() throws PharmaTrackerException {
         Command c = PharmaTrackerParser.parse("restock 1 q/10");
+      
+    }
+      
+    @Test
+    public void parser_dispenseNegativeCustomerIndex_returnsNull() throws PharmaTrackerException {
+        Command c = PharmaTrackerParser.parse("dispense 1 /q 10 /c -1");
         assertNull(c);
     }
 }

@@ -109,6 +109,10 @@ public class PharmaTrackerParser {
                     String customerStr = extractFlagValue(args, "/c", null);
                     if (customerStr != null && !customerStr.isEmpty()) {
                         int dispenseCustomer = Integer.parseInt(customerStr.trim());
+                        if (dispenseCustomer < 1) {
+                            System.out.println("Invalid customer index. Please enter a valid customer index.");
+                            break;
+                        }
                         return new DispenseCommand(dispenseIndex, dispenseQuantity, dispenseCustomer);
                     }
                 }
