@@ -109,8 +109,6 @@ public class PharmaTracker {
                 }
             } catch (PharmaTrackerException e) {
                 ui.printMessage(e.getMessage());
-            } catch (Exception e) {
-                ui.printMessage("An unexpected error occurred: " + e.getMessage());
             }
         }
     }
