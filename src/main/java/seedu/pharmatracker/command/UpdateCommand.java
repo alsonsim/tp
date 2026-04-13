@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import seedu.pharmatracker.customer.CustomerList;
 import seedu.pharmatracker.data.Inventory;
 import seedu.pharmatracker.data.Medication;
+import seedu.pharmatracker.exceptions.PharmaTrackerException;
 import seedu.pharmatracker.ui.Ui;
 
 /**
@@ -79,21 +80,19 @@ public class UpdateCommand extends Command {
      * @param customerList The list of registered customers in the system.
      */
     @Override
-    public void execute(Inventory inventory, Ui ui, CustomerList customerList) {
+    public void execute(Inventory inventory, Ui ui, CustomerList customerList) throws PharmaTrackerException {
         assert inventory != null : "Inventory cannot be null in UpdateCommand execution.";
         assert ui != null : "Ui cannot be null in UpdateCommand execution.";
 
         logger.log(Level.INFO, "Starting execution of UpdateCommand for index:" + index);
 
         if (inventory.getMedications().isEmpty()) {
-            System.out.println("inventory is empty.");
-            return;
+            throw new PharmaTrackerException("Inventory is empty.");
         }
 
         if (index < 1 || index > inventory.getMedications().size()) {
-            System.out.println("Invalid index. Please enter a number between 1 and "
+            throw new PharmaTrackerException("Invalid index. Please enter a number between 1 and "
                     + inventory.getMedications().size() + ".");
-            return;
         }
 
         Medication med = inventory.getMedication(index - 1);

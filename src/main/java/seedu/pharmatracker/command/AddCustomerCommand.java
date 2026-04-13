@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import seedu.pharmatracker.customer.Customer;
 import seedu.pharmatracker.customer.CustomerList;
 import seedu.pharmatracker.data.Inventory;
+import seedu.pharmatracker.exceptions.PharmaTrackerException;
 import seedu.pharmatracker.ui.Ui;
 
 /**
@@ -58,16 +59,16 @@ public class AddCustomerCommand extends Command {
      * @param customerList The list of registered customers.
      */
     @Override
-    public void execute(Inventory inventory, Ui ui, CustomerList customerList) {
+    public void execute(Inventory inventory, Ui ui, CustomerList customerList) throws PharmaTrackerException {
         assert ui != null : "Ui cannot be null in AddCustomerCommand execution.";
         assert customerList != null : "CustomerList cannot be null in AddCustomerCommand execution.";
 
         logger.log(Level.INFO, "Starting execution of AddCustomerCommand for customer: " + name);
 
         if (customerList.containsCustomerId(customerId)) {
-            ui.printMessage("Failed to add customer: A customer with ID '" + customerId + "' already exists.");
             logger.log(Level.WARNING, "Attempted to add duplicate customer ID: " + customerId);
-            return;
+            throw new PharmaTrackerException("Failed to add customer: A customer with ID '"
+                    + customerId + "' already exists.");
         }
 
         Customer customer = new Customer(customerId, name, phone, address);

@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import seedu.pharmatracker.customer.Customer;
 import seedu.pharmatracker.customer.CustomerList;
 import seedu.pharmatracker.data.Inventory;
+import seedu.pharmatracker.exceptions.PharmaTrackerException;
 import seedu.pharmatracker.ui.Ui;
 
 //@@author karthikkathiresh
@@ -64,7 +65,7 @@ public class AddCustomerCommandTest {
     }
 
     @Test
-    void execute_validParameters_customerAddedToCustomerList() {
+    void execute_validParameters_customerAddedToCustomerList() throws PharmaTrackerException {
         // Setup
         AddCustomerCommand command = new AddCustomerCommand("C001", "John Doe", "91234567",
                 "123 Clementi Road", new ArrayList<>());

@@ -13,6 +13,7 @@ import java.util.Arrays;
 import seedu.pharmatracker.customer.CustomerList;
 import seedu.pharmatracker.data.Inventory;
 import seedu.pharmatracker.data.Medication;
+import seedu.pharmatracker.exceptions.PharmaTrackerException;
 import seedu.pharmatracker.ui.Ui;
 
 public class UpdateCommandTest {
@@ -41,7 +42,7 @@ public class UpdateCommandTest {
     }
 
     @Test
-    void execute_allFieldsProvided_updatesAllFields() {
+    void execute_allFieldsProvided_updatesAllFields() throws PharmaTrackerException {
         ArrayList<String> newWarnings = new ArrayList<>(Arrays.asList("Do not take on empty stomach", "Avoid alcohol"));
         UpdateCommand command = new UpdateCommand(
                 1, "Panadol Extra", "650mg", 150, "2027-01-01", "Strong Painkiller",
@@ -68,7 +69,7 @@ public class UpdateCommandTest {
     }
 
     @Test
-    void execute_singleFieldProvided_updatesOnlySpecifiedField() {
+    void execute_singleFieldProvided_updatesOnlySpecifiedField() throws PharmaTrackerException {
         UpdateCommand command = new UpdateCommand(
                 1, "Ibuprofen", null, null, null, null,
                 null, null, null, null, null, null, null
@@ -83,41 +84,49 @@ public class UpdateCommandTest {
     }
 
     @Test
-    void execute_emptyInventory_abortsExecution() {
+    void execute_emptyInventory_throwsPharmaTrackerException() {
         Inventory emptyInventory = new Inventory();
         UpdateCommand command = new UpdateCommand(
                 1, "Ibuprofen", null, null, null, null,
                 null, null, null, null, null, null, null
         );
 
-        command.execute(emptyInventory, ui, customerList);
-        assertEquals(0, emptyInventory.getMedicationCount());
+        PharmaTrackerException thrown = assertThrows(PharmaTrackerException.class,
+                () -> command.execute(emptyInventory, ui, customerList));
+
+        assertEquals("Inventory is empty.", thrown.getMessage());
     }
 
     @Test
-    void execute_invalidIndexHigh_abortsExecution() {
+    void execute_invalidIndexHigh_throwsPharmaTrackerException() {
         UpdateCommand command = new UpdateCommand(
                 2, "Ibuprofen", null, null, null, null,
                 null, null, null, null, null, null, null
         );
 
-        command.execute(inventory, ui, customerList);
-        assertEquals("Paracetamol", inventory.getMedication(0).getName());
+        PharmaTrackerException thrown = assertThrows(PharmaTrackerException.class,
+                () -> command.execute(inventory, ui, customerList));
+
+        assertEquals("Invalid index. Please enter a number between 1 and 1.", thrown.getMessage());
     }
 
     @Test
-    void execute_invalidIndexLow_abortsExecution() {
+    void execute_invalidIndexLow_throwsPharmaTrackerException() {
         UpdateCommand command = new UpdateCommand(
                 0, "Ibuprofen", null, null, null, null,
                 null, null, null, null, null, null, null
         );
 
-        command.execute(inventory, ui, customerList);
-        assertEquals("Paracetamol", inventory.getMedication(0).getName());
+        // Assert that attempting to update with an index less than 1 throws an exception
+        PharmaTrackerException thrown = assertThrows(PharmaTrackerException.class,
+                () -> command.execute(inventory, ui, customerList));
+
+        // Verify the exact error message (assuming your test setup has 1 item in the inventory)
+        assertEquals("Invalid index. Please enter a number between 1 and 1.", thrown.getMessage());
     }
 
     @Test
-    void execute_noFieldsProvided_abortsExecution() {
+    void execute_noFieldsProvided_abortsExecution() throws PharmaTrackerException {
         UpdateCommand command = new UpdateCommand(
                 1, null, null, null, null, null,
                 null, null, null, null, null, null, null
