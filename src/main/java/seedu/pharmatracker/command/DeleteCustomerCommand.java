@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 import seedu.pharmatracker.customer.Customer;
 import seedu.pharmatracker.customer.CustomerList;
 import seedu.pharmatracker.data.Inventory;
+import seedu.pharmatracker.exceptions.PharmaTrackerException;
 import seedu.pharmatracker.ui.Ui;
 
 /**
@@ -37,18 +38,22 @@ public class DeleteCustomerCommand extends Command {
      * @param customerList The list of registered customers in the system.
      */
     @Override
-    public void execute(Inventory inventory, Ui ui, CustomerList customerList) {
+    public void execute(Inventory inventory, Ui ui, CustomerList customerList) throws PharmaTrackerException {
         logger.log(Level.INFO, "Starting execution of DeleteCommand for index: " + description);
 
         assert customerList != null : "Customer list cannot be empty in DeleteCustomerCommand";
         assert ui != null : "Ui cannot be null in DeleteCustomerCommand";
 
+        int customerCount = customerList.getCustomerCount();
+        if (customerCount == 0) {
+            throw new PharmaTrackerException("Database is empty! There are no customers to remove.");
+        }
+
         try {
             int index = Integer.parseInt(description.trim());
             if (index < 1 || index > customerList.getCustomerCount()) {
-                System.out.println("Invalid index. Please enter a number between 1 and "
-                        + customerList.getCustomerCount() + ".");
-                return;
+                throw new PharmaTrackerException("Invalid index. Please enter a number between 1 and "
+                        + customerCount + ".");
             }
             int zeroBasedIndex = index - 1;
             Customer customer = customerList.getCustomer(zeroBasedIndex);
@@ -56,8 +61,13 @@ public class DeleteCustomerCommand extends Command {
             ui.printDeletedCustomerMessage(customer, customerList);
             logger.log(Level.INFO, "Successfully executed DeleteCommand");
         } catch (NumberFormatException e) {
-            System.out.println("Invalid format! Please enter a valid number for the customer index.");
             logger.log(Level.WARNING, "Failed to parse index in DeleteCustomerCommand: " + description);
+            if (description.trim().matches("-?\\d+")) {
+                throw new PharmaTrackerException("Invalid index. Please enter a number between 1 and "
+                        + customerCount + ".");
+            } else {
+                throw new PharmaTrackerException("Invalid format! Please enter a valid number for the customer index.");
+            }
         }
     }
 }

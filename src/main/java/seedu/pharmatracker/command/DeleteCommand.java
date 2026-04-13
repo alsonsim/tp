@@ -46,7 +46,7 @@ public class DeleteCommand extends Command {
         int medicationCount = inventory.getMedicationCount();
 
         if (medicationCount == 0) {
-            throw new PharmaTrackerException("Inventory is empty! There is nothing to delete.");
+            throw new PharmaTrackerException("Inventory is empty! There are no medications to delete.");
         }
 
         try {
