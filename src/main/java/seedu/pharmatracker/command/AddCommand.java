@@ -96,6 +96,12 @@ public class AddCommand extends Command {
             med.addWarning(warning);
         }
 
+        if (inventory.containsMedication(name, dosage, quantity, expiryDate)) {
+            ui.printMessage("Failed to add medication.\nUse the update command to update the medication as required.");
+            logger.log(Level.WARNING, "Attempted to add duplicate medication entry");
+            return;
+        }
+
         inventory.addMedication(med);
         ui.printAddedMessage(med, inventory);
         logger.log(Level.INFO, "Successfully executed AddCommand.");
