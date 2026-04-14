@@ -670,7 +670,7 @@ update-customer INDEX [/n NAME] [/p PHONE] [/addr ADDRESS] [/allergy ALLERGY1,AL
 
 The following sequence diagram shows the full execution flow of the `update-customer` command:
 
-![Sequence diagram showing the execution flow of the Update Customer Command](images/updateCustomerCommandDiagram.png)
+![Sequence diagram showing the execution flow of the Update Customer Command](images/UpdateCustomerCommandSequence.png)
 
 #### Design Considerations
 

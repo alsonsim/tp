@@ -1,0 +1,106 @@
+@startuml
+skinparam ArrowFontStyle plain
+
+actor User
+participant ":PharmaTracker" as PharmaTracker
+participant ":Ui" as Ui
+participant "<<class>>\nPharmaTrackerParser" as Parser
+participant "<<class>>\nCustomerParserUtil" as CustomerParserUtil
+participant "c:UpdateCustomerCommand" as UpdateCustomerCommand
+participant "customerList:CustomerList" as CustomerList
+participant "customer:Customer" as Customer
+
+User -> PharmaTracker : "update-customer 1 /n Alice /p 91234567 /addr 10 Orchard Road"
+activate PharmaTracker
+
+PharmaTracker -> Ui : readCommand()
+activate Ui
+Ui --> PharmaTracker : fullCommand
+deactivate Ui
+
+PharmaTracker -> Parser : parse(fullCommand)
+activate Parser
+
+alt description is empty
+    Parser -> Parser : throw PharmaTrackerException\n("Invalid format! Use: update-customer INDEX ...")
+else non-integer index
+    Parser -> Parser : throw PharmaTrackerException\n("Invalid index! The first argument must be a valid number.")
+else valid input
+    Parser -> CustomerParserUtil : extractCustomerUpdateFlag(ucArgs, "/n")
+    activate CustomerParserUtil
+    CustomerParserUtil --> Parser : ucName
+    deactivate CustomerParserUtil
+
+    Parser -> CustomerParserUtil : extractCustomerUpdateFlag(ucArgs, "/p")
+    activate CustomerParserUtil
+    CustomerParserUtil --> Parser : ucPhone
+    deactivate CustomerParserUtil
+
+    alt ucPhone fails Singapore format check
+        Parser -> Parser : throw PharmaTrackerException\n("Customer phone must be a valid Singapore number!")
+    end
+
+    Parser -> CustomerParserUtil : extractCustomerUpdateFlag(ucArgs, FLAG_ADDRESS)
+    activate CustomerParserUtil
+    CustomerParserUtil --> Parser : ucAddress
+    deactivate CustomerParserUtil
+
+    opt /allergy flag present
+        Parser -> CustomerParserUtil : extractCustomerAllergies(ucArgs)
+        activate CustomerParserUtil
+        CustomerParserUtil --> Parser : ucAllergies
+        deactivate CustomerParserUtil
+    end
+
+    create UpdateCustomerCommand
+    Parser -> UpdateCustomerCommand : new UpdateCustomerCommand\n(ucIndex, ucName, ucPhone, ucAddress, ucAllergies)
+    activate UpdateCustomerCommand
+    UpdateCustomerCommand --> Parser : c
+    deactivate UpdateCustomerCommand
+end
+
+Parser --> PharmaTracker : c
+deactivate Parser
+
+PharmaTracker -> UpdateCustomerCommand : execute(inv, ui, customerList)
+activate UpdateCustomerCommand
+
+UpdateCustomerCommand -> CustomerList : size()
+activate CustomerList
+CustomerList --> UpdateCustomerCommand : size
+deactivate CustomerList
+
+alt index is out of range
+    UpdateCustomerCommand -> Ui : printMessage("Invalid index...")
+    activate Ui
+    Ui --> UpdateCustomerCommand
+    deactivate Ui
+else all fields are null
+    UpdateCustomerCommand -> Ui : printMessage("No fields provided to update!...")
+    activate Ui
+    Ui --> UpdateCustomerCommand
+    deactivate Ui
+else valid request
+    UpdateCustomerCommand -> CustomerList : getCustomer(index - 1)
+    activate CustomerList
+    CustomerList --> UpdateCustomerCommand : customer
+    deactivate CustomerList
+
+    note over UpdateCustomerCommand
+      For each non-null field, the corresponding
+      setter is called on customer:
+      setName(), setPhone(), setAddress(), setAllergies().
+      Null fields are left unchanged.
+    end note
+
+    UpdateCustomerCommand -> Ui : printUpdatedCustomerMessage(customer)
+    activate Ui
+    Ui --> UpdateCustomerCommand
+    deactivate Ui
+end
+
+UpdateCustomerCommand --> PharmaTracker
+deactivate UpdateCustomerCommand
+
+deactivate PharmaTracker
+@enduml

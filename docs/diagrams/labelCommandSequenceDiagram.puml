@@ -1,58 +1,82 @@
 @startuml
+skinparam ArrowFontStyle plain
+
 actor User
 participant ":PharmaTracker" as PharmaTracker
-participant ":PharmaTrackerParser" as PharmaTrackerParser
+participant ":Ui" as Ui
+participant "<<class>>\nPharmaTrackerParser" as Parser
 participant "c:LabelCommand" as LabelCommand
-participant ":Inventory" as Inventory
-participant "med:Medication" as Medication
+participant "inv:Inventory" as Inventory
 
-User -> PharmaTracker : label 1
+User -> PharmaTracker : "label 1"
 activate PharmaTracker
 
-PharmaTracker -> PharmaTrackerParser : parseCommand("label 1")
-activate PharmaTrackerParser
+PharmaTracker -> Ui : readCommand()
+activate Ui
+Ui --> PharmaTracker : fullCommand
+deactivate Ui
 
-PharmaTrackerParser -> PharmaTrackerParser : parseInt("1")
-activate PharmaTrackerParser
-return index
+PharmaTracker -> Parser : parse(fullCommand)
+activate Parser
 
-create LabelCommand
-PharmaTrackerParser -> LabelCommand : new LabelCommand(1)
-activate LabelCommand
-return c
+alt description is empty
+    Parser -> Parser : println("Please provide an index for the label.")
+else description is not a valid integer
+    Parser -> Parser : println("Invalid index. Please enter a valid number.")
+else valid index provided
+    Parser -> Parser : parseInt(description.trim())
+    activate Parser
+    Parser --> Parser : index
+    deactivate Parser
 
-return c
+    create LabelCommand
+    Parser -> LabelCommand : new LabelCommand(index)
+    activate LabelCommand
+    LabelCommand --> Parser : c
+    deactivate LabelCommand
+end
 
-PharmaTracker -> LabelCommand : execute(inventory, ui, customerList)
+Parser --> PharmaTracker : c
+deactivate Parser
+
+PharmaTracker -> LabelCommand : execute(inv, ui, customerList)
 activate LabelCommand
 
 LabelCommand -> Inventory : getMedications()
 activate Inventory
-return medicationList
+Inventory --> LabelCommand : medicationList
+deactivate Inventory
 
-LabelCommand -> Inventory : getMedication(0)
-activate Inventory
-return med
+alt inventory is empty
+    LabelCommand -> Ui : printMessage("Inventory is empty.")
+    activate Ui
+    Ui --> LabelCommand
+    deactivate Ui
+else index is out of range
+    LabelCommand -> Ui : printMessage("Invalid index...")
+    activate Ui
+    Ui --> LabelCommand
+    deactivate Ui
+else valid request
+    LabelCommand -> Inventory : getMedication(index - 1)
+    activate Inventory
+    Inventory --> LabelCommand : med
+    deactivate Inventory
 
-LabelCommand -> Medication : getName()
-activate Medication
-return name
+    note over LabelCommand
+      getName(), getDosage(), getExpiryDate(),
+      and getTag() are called on med.
+      A formatted label block is printed via Ui.
+    end note
 
-LabelCommand -> Medication : getDosage()
-activate Medication
-return dosage
+    LabelCommand -> Ui : printMessage(label.toString())
+    activate Ui
+    Ui --> LabelCommand
+    deactivate Ui
+end
 
-LabelCommand -> Medication : getExpiryDate()
-activate Medication
-return expiryDate
-
-LabelCommand -> Medication : getTag()
-activate Medication
-return tag
-
-LabelCommand --> PharmaTracker : prints formatted label
+LabelCommand --> PharmaTracker
 deactivate LabelCommand
 
-PharmaTracker --> User : displays output
 deactivate PharmaTracker
 @enduml

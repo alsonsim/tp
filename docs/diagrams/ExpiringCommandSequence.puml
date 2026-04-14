@@ -7,7 +7,6 @@ participant ":Ui" as Ui
 participant "<<class>>\nPharmaTrackerParser" as Parser
 participant "c:ExpiringCommand" as ExpiringCommand
 participant "inv:Inventory" as Inventory
-participant "med:Medication" as Medication
 
 User -> PharmaTracker : "expiring /days 14"
 activate PharmaTracker
@@ -20,15 +19,21 @@ deactivate Ui
 PharmaTracker -> Parser : parse(fullCommand)
 activate Parser
 
-create ExpiringCommand
 alt no /days argument provided
+    create ExpiringCommand
     Parser -> ExpiringCommand : new ExpiringCommand()
+    activate ExpiringCommand
+    ExpiringCommand --> Parser : c
+    deactivate ExpiringCommand
+else /days argument is negative
+    Parser -> Parser : throw PharmaTrackerException\n("Number of days must be a non-negative integer.")
 else valid /days argument provided
+    create ExpiringCommand
     Parser -> ExpiringCommand : new ExpiringCommand(days)
+    activate ExpiringCommand
+    ExpiringCommand --> Parser : c
+    deactivate ExpiringCommand
 end
-activate ExpiringCommand
-ExpiringCommand --> Parser : c
-deactivate ExpiringCommand
 
 Parser --> PharmaTracker : c
 deactivate Parser
@@ -41,24 +46,12 @@ activate Inventory
 Inventory --> ExpiringCommand : medicationList
 deactivate Inventory
 
-loop for each medication
-    ExpiringCommand -> Medication : getExpiryDate()
-    activate Medication
-    Medication --> ExpiringCommand : expiry
-    deactivate Medication
-
-    alt expiry is null or invalid
-        note right of ExpiringCommand
-          Medication is skipped if the
-          expiry date is missing or
-          cannot be parsed.
-        end note
-    else expired before today
-        ExpiringCommand -> ExpiringCommand : expiredMeds.add(med)
-    else within cutoff window
-        ExpiringCommand -> ExpiringCommand : expiringMeds.add(med)
-    end
-end
+note over ExpiringCommand
+  For each medication, getExpiryDate() is called.
+  Medications with null or unparseable expiry are skipped.
+  Those before today go to expiredMeds;
+  those within the cutoff window go to expiringMeds.
+end note
 
 ExpiringCommand -> Ui : showExpiringMedications(expiredMeds, expiringMeds, days)
 activate Ui
@@ -67,7 +60,6 @@ deactivate Ui
 
 ExpiringCommand --> PharmaTracker
 deactivate ExpiringCommand
-destroy ExpiringCommand
 
 deactivate PharmaTracker
 @enduml

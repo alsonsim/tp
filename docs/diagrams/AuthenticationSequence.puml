@@ -1,39 +1,104 @@
 @startuml
-skinparam backgroundColor white
-skinparam sequenceArrowThickness 2
+skinparam ArrowFontStyle plain
 
 actor User
-participant ":PharmaTracker" as PT
-participant ":Parser" as Parser
-participant "c:Command" as Cmd
-participant ":AuthService" as Auth
-participant ":Storage" as Storage
+participant ":PharmaTracker" as PharmaTracker
 participant ":Ui" as Ui
+participant "<<class>>\nPharmaTrackerParser" as Parser
+participant "<<class>>\nAppServices" as AppServices
+participant ":AuthService" as AuthService
+participant ":Storage" as Storage
 
-User -> PT : run()
-PT -> Ui : readCommand()
-Ui --> PT : fullCommand
-PT -> Parser : parse(fullCommand)
+User -> PharmaTracker : "register / login / logout"
+activate PharmaTracker
 
-alt register USERNAME /p PASSWORD
-    Parser --> PT : new RegisterCommand(username, password)
-    PT -> Cmd : execute(inventory, ui, customerList)
-    Cmd -> Auth : register(username, password)
-    Auth --> Cmd : success / validation error
-    Cmd -> Ui : printMessage(result)
-else login USERNAME /p PASSWORD
-    Parser --> PT : new LoginCommand(username, password)
-    PT -> Cmd : execute(inventory, ui, customerList)
-    Cmd -> Auth : login(username, password)
-    Auth --> Cmd : success / validation error
-    Cmd -> Ui : printMessage(result)
-else logout
-    Parser --> PT : new LogoutCommand()
-    PT -> Cmd : execute(inventory, ui, customerList)
-    Cmd -> Auth : logout()
-    Cmd -> Ui : printMessage("Logged out successfully")
+PharmaTracker -> Ui : readCommand()
+activate Ui
+Ui --> PharmaTracker : fullCommand
+deactivate Ui
+
+PharmaTracker -> Parser : parse(fullCommand)
+activate Parser
+
+alt "register USERNAME /p PASSWORD"
+    create "c:RegisterCommand" as RegisterCommand
+    Parser -> RegisterCommand : new RegisterCommand(username, password)
+    activate RegisterCommand
+    RegisterCommand --> Parser : c
+    deactivate RegisterCommand
+else "login USERNAME /p PASSWORD"
+    create "c:LoginCommand" as LoginCommand
+    Parser -> LoginCommand : new LoginCommand(username, password)
+    activate LoginCommand
+    LoginCommand --> Parser : c
+    deactivate LoginCommand
+else "logout"
+    create "c:LogoutCommand" as LogoutCommand
+    Parser -> LogoutCommand : new LogoutCommand()
+    activate LogoutCommand
+    LogoutCommand --> Parser : c
+    deactivate LogoutCommand
 end
 
-PT -> Storage : saveUsers(authService.getUsersSnapshot())
-PT -> Storage : saveSession(authService.getCurrentUsername())
+Parser --> PharmaTracker : c
+deactivate Parser
+
+alt command requires authentication and user not logged in
+    PharmaTracker -> Ui : printMessage("Authentication required.")
+    activate Ui
+    Ui --> PharmaTracker
+    deactivate Ui
+else authentication satisfied
+    PharmaTracker -> c : execute(inv, ui, customerList)
+    activate c
+
+    c -> AppServices : getAuthService()
+    activate AppServices
+    AppServices --> c : authService
+    deactivate AppServices
+
+    alt register
+        c -> AuthService : register(username, password)
+        activate AuthService
+        AuthService --> c
+        deactivate AuthService
+        c -> Ui : printMessage("Registration successful...")
+        activate Ui
+        Ui --> c
+        deactivate Ui
+    else login
+        c -> AuthService : login(username, password)
+        activate AuthService
+        AuthService --> c
+        deactivate AuthService
+        c -> Ui : printMessage("Login successful...")
+        activate Ui
+        Ui --> c
+        deactivate Ui
+    else logout
+        c -> AuthService : logout()
+        activate AuthService
+        AuthService --> c
+        deactivate AuthService
+        c -> Ui : printMessage("Logged out successfully: ...")
+        activate Ui
+        Ui --> c
+        deactivate Ui
+    end
+
+    c --> PharmaTracker
+    deactivate c
+
+    PharmaTracker -> Storage : saveUsers(authService.getUsersSnapshot())
+    activate Storage
+    Storage --> PharmaTracker
+    deactivate Storage
+
+    PharmaTracker -> Storage : saveSession(authService.getCurrentUsername())
+    activate Storage
+    Storage --> PharmaTracker
+    deactivate Storage
+end
+
+deactivate PharmaTracker
 @enduml

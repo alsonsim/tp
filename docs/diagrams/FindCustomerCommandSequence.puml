@@ -3,27 +3,36 @@ skinparam ArrowFontStyle plain
 
 actor User
 participant ":PharmaTracker" as PharmaTracker
+participant ":Ui" as Ui
 participant "<<class>>\nPharmaTrackerParser" as Parser
 participant "fc:FindCustomerCommand" as FindCustomerCommand
-participant ":CustomerList" as CustomerList
-participant ":Ui" as Ui
+participant "customerList:CustomerList" as CustomerList
 
-User -> PharmaTracker : find-customer alice
+User -> PharmaTracker : "find-customer alice"
 activate PharmaTracker
 
-PharmaTracker -> Parser : parse("find-customer alice")
+PharmaTracker -> Ui : readCommand()
+activate Ui
+Ui --> PharmaTracker : fullCommand
+deactivate Ui
+
+PharmaTracker -> Parser : parse(fullCommand)
 activate Parser
 
-create FindCustomerCommand
-Parser -> FindCustomerCommand : new FindCustomerCommand("alice")
-activate FindCustomerCommand
-FindCustomerCommand --> Parser : fc
-deactivate FindCustomerCommand
+alt keyword is empty
+    Parser -> Parser : throw PharmaTrackerException\n("Please provide a name to search for.")
+else keyword provided
+    create FindCustomerCommand
+    Parser -> FindCustomerCommand : new FindCustomerCommand("alice")
+    activate FindCustomerCommand
+    FindCustomerCommand --> Parser : fc
+    deactivate FindCustomerCommand
+end
 
 Parser --> PharmaTracker : fc
 deactivate Parser
 
-PharmaTracker -> FindCustomerCommand : execute(inventory, ui, customerList)
+PharmaTracker -> FindCustomerCommand : execute(inv, ui, customerList)
 activate FindCustomerCommand
 
 FindCustomerCommand -> CustomerList : findByName("alice")
@@ -45,8 +54,6 @@ end
 
 FindCustomerCommand --> PharmaTracker
 deactivate FindCustomerCommand
-
-destroy FindCustomerCommand
 
 deactivate PharmaTracker
 @enduml

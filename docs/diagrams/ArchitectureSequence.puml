@@ -7,9 +7,12 @@ participant ":PharmaTracker" as PharmaTracker
 participant "<<class>>\nLoggerSetup" as LoggerSetup
 participant ":Ui" as Ui
 participant ":Storage" as Storage
-participant ":Inventory" as Inventory
-participant ":CustomerList" as CustomerList
-participant "<<class>>\nPharmaTrackerParser" as PTP
+participant "inv:Inventory" as Inventory
+participant "customerList:CustomerList" as CustomerList
+participant ":AuthService" as AuthService
+participant ":RestockAlertService" as RestockAlertService
+participant "<<class>>\nAppServices" as AppServices
+participant "<<class>>\nPharmaTrackerParser" as Parser
 participant "c:Command" as Command
 
 User -> PharmaTracker : launch app (main)
@@ -42,6 +45,16 @@ deactivate Inventory
 Storage --> PharmaTracker : inventory
 deactivate Storage
 
+PharmaTracker -> Storage : loadDispenseLog()
+activate Storage
+Storage --> PharmaTracker : dispenseLog
+deactivate Storage
+
+PharmaTracker -> Inventory : setDispenseLog(dispenseLog)
+activate Inventory
+Inventory --> PharmaTracker
+deactivate Inventory
+
 PharmaTracker -> Storage : loadCustomers()
 activate Storage
 create CustomerList
@@ -52,52 +65,134 @@ deactivate CustomerList
 Storage --> PharmaTracker : customerList
 deactivate Storage
 
+PharmaTracker -> Storage : loadUsers()
+activate Storage
+Storage --> PharmaTracker : users
+deactivate Storage
+
+PharmaTracker -> Storage : loadSession()
+activate Storage
+Storage --> PharmaTracker : sessionUsername
+deactivate Storage
+
+create AuthService
+PharmaTracker -> AuthService : new AuthService(users, sessionUsername)
+activate AuthService
+AuthService --> PharmaTracker
+deactivate AuthService
+
+PharmaTracker -> Storage : loadAlertHistory()
+activate Storage
+Storage --> PharmaTracker : alertHistory
+deactivate Storage
+
+create RestockAlertService
+PharmaTracker -> RestockAlertService : new RestockAlertService(alertHistory)
+activate RestockAlertService
+RestockAlertService --> PharmaTracker
+deactivate RestockAlertService
+
+PharmaTracker -> AppServices : initialize(authService, restockAlertService)
+activate AppServices
+AppServices --> PharmaTracker
+deactivate AppServices
+
+PharmaTracker -> RestockAlertService : evaluateInventory(inventory)
+activate RestockAlertService
+RestockAlertService --> PharmaTracker
+deactivate RestockAlertService
+
 PharmaTracker -> Ui : printWelcomeMessage()
 activate Ui
 Ui --> PharmaTracker
 deactivate Ui
 
 loop continuous execution loop
+
     PharmaTracker -> Ui : readCommand()
     activate Ui
     User --> Ui : input string
     Ui --> PharmaTracker : fullCommand
     deactivate Ui
 
-    PharmaTracker -> PTP : parse(fullCommand)
-    activate PTP
+    alt unauthenticated user issues restricted command
+        PharmaTracker -> Ui : printMessage("Authentication required...")
+        activate Ui
+        Ui --> PharmaTracker
+        deactivate Ui
+    else command is valid to parse
+        PharmaTracker -> Parser : parse(fullCommand)
+        activate Parser
 
-    create Command
-    PTP -> Command : instantiate specific command
-    activate Command
-    Command --> PTP : c
-    deactivate Command
+        alt invalid command or arguments
+            Parser -> Parser : throw PharmaTrackerException
+        else valid command
+            create Command
+            Parser -> Command : instantiate specific command
+            activate Command
+            Command --> Parser : c
+            deactivate Command
+        end
 
-    PTP --> PharmaTracker : c
-    deactivate PTP
+        Parser --> PharmaTracker : c
+        deactivate Parser
 
-    PharmaTracker -> Command : execute(inventory, ui, customerList)
-    activate Command
+        alt command requires authentication and user not logged in
+            PharmaTracker -> Ui : printMessage("Authentication required...")
+            activate Ui
+            Ui --> PharmaTracker
+            deactivate Ui
+        else authentication satisfied
+            PharmaTracker -> Command : execute(inventory, ui, customerList)
+            activate Command
 
-    note right of Command
-        Execution details depend
-        on the specific command.
-    end note
+            note right of Command
+                Execution details depend
+                on the specific command.
+            end note
 
-    Command --> PharmaTracker
-    deactivate Command
+            Command --> PharmaTracker
+            deactivate Command
 
-    PharmaTracker -> Storage : save(inventory)
-    activate Storage
-    Storage --> PharmaTracker
-    deactivate Storage
+            alt command is not LogoutCommand
+                PharmaTracker -> RestockAlertService : evaluateInventory(inventory)
+                activate RestockAlertService
+                RestockAlertService --> PharmaTracker
+                deactivate RestockAlertService
+            end
 
-    PharmaTracker -> Storage : saveCustomers(customerList)
-    activate Storage
-    Storage --> PharmaTracker
-    deactivate Storage
+            PharmaTracker -> Storage : save(inventory)
+            activate Storage
+            Storage --> PharmaTracker
+            deactivate Storage
 
-    destroy Command
+            PharmaTracker -> Storage : saveCustomers(customerList)
+            activate Storage
+            Storage --> PharmaTracker
+            deactivate Storage
+
+            PharmaTracker -> Storage : saveUsers(authService.getUsersSnapshot())
+            activate Storage
+            Storage --> PharmaTracker
+            deactivate Storage
+
+            PharmaTracker -> Storage : saveSession(authService.getCurrentUsername())
+            activate Storage
+            Storage --> PharmaTracker
+            deactivate Storage
+
+            PharmaTracker -> Storage : saveAlertHistory(restockAlertService.getAlertHistory())
+            activate Storage
+            Storage --> PharmaTracker
+            deactivate Storage
+
+            PharmaTracker -> Storage : saveDispenseLog(inventory.getDispenseLog())
+            activate Storage
+            Storage --> PharmaTracker
+            deactivate Storage
+        end
+    end
+
 end
 
 deactivate PharmaTracker

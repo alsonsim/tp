@@ -1,55 +1,62 @@
 @startuml
+skinparam ArrowFontStyle plain
+
 actor User
 participant ":PharmaTracker" as PharmaTracker
-participant ":PharmaTrackerParser" as PharmaTrackerParser
-participant "c:LowStockCommand" as LowStockCommand
-participant ":Inventory" as Inventory
-participant "med:Medication" as Medication
 participant ":Ui" as Ui
+participant "<<class>>\nPharmaTrackerParser" as Parser
+participant "c:LowStockCommand" as LowStockCommand
+participant "inv:Inventory" as Inventory
 
-User -> PharmaTracker : lowstock /threshold 10
+User -> PharmaTracker : "lowstock /threshold 10"
 activate PharmaTracker
 
-PharmaTracker -> PharmaTrackerParser : parseCommand("lowstock /threshold 10")
-activate PharmaTrackerParser
+PharmaTracker -> Ui : readCommand()
+activate Ui
+Ui --> PharmaTracker : fullCommand
+deactivate Ui
 
-alt /threshold flag provided
+PharmaTracker -> Parser : parse(fullCommand)
+activate Parser
+
+alt no arguments provided
     create LowStockCommand
-    PharmaTrackerParser -> LowStockCommand : new LowStockCommand(10)
+    Parser -> LowStockCommand : new LowStockCommand()
     activate LowStockCommand
-    return c
-else no arguments
+    LowStockCommand --> Parser : c
+    deactivate LowStockCommand
+else /threshold flag provided
     create LowStockCommand
-    PharmaTrackerParser -> LowStockCommand : new LowStockCommand()
+    Parser -> LowStockCommand : new LowStockCommand(threshold)
     activate LowStockCommand
-    return c
+    LowStockCommand --> Parser : c
+    deactivate LowStockCommand
 end
 
-return c
+Parser --> PharmaTracker : c
+deactivate Parser
 
-PharmaTracker -> LowStockCommand : execute(inventory, ui, customerList)
+PharmaTracker -> LowStockCommand : execute(inv, ui, customerList)
 activate LowStockCommand
 
 LowStockCommand -> Inventory : getMedications()
 activate Inventory
-return medicationList
+Inventory --> LowStockCommand : medicationList
+deactivate Inventory
 
-loop for each medication
-    LowStockCommand -> Medication : getQuantity()
-    activate Medication
-    return quantity
-
-    alt quantity < threshold
-        LowStockCommand -> LowStockCommand : lowStockMeds.add(med)
-    end
-end
+note over LowStockCommand
+  For each medication, getQuantity() is called.
+  If quantity < threshold, the medication is
+  added to lowStockMeds.
+end note
 
 LowStockCommand -> Ui : printLowStockList(lowStockMeds, threshold)
 activate Ui
-return
+Ui --> LowStockCommand
+deactivate Ui
 
-return
+LowStockCommand --> PharmaTracker
+deactivate LowStockCommand
 
-PharmaTracker --> User : displays output
 deactivate PharmaTracker
 @enduml

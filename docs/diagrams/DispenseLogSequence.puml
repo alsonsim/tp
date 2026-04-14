@@ -1,61 +1,83 @@
 @startuml
-skinparam backgroundColor white
-skinparam sequenceArrowThickness 2
+skinparam ArrowFontStyle plain
 
 actor User
-participant ":PharmaTracker" as PT
-participant ":Parser" as Parser
-participant ":DispenseSummaryCommand" as Cmd
-participant ":Inventory" as Inv
-participant ":DispenseLog" as Log
+participant ":PharmaTracker" as PharmaTracker
 participant ":Ui" as Ui
+participant "<<class>>\nPharmaTrackerParser" as Parser
+participant "c:DispenseSummaryCommand" as DispenseSummaryCommand
+participant "inv:Inventory" as Inventory
+participant "log:DispenseLog" as DispenseLog
 participant ":Storage" as Storage
 
-== Startup: load persisted log ==
+note over PharmaTracker, Storage
+  On startup: Storage.loadDispenseLog() is called
+  and the result is installed into Inventory
+  via inventory.setDispenseLog(dispenseLog).
+end note
 
-PT -> Storage : loadDispenseLog()
-activate Storage
-Storage --> PT : dispenseLog
-deactivate Storage
-PT -> Inv : setDispenseLog(dispenseLog)
+User -> PharmaTracker : "dispenselog /date 2026-04-09"
+activate PharmaTracker
 
-== User views the dispense log ==
+PharmaTracker -> Ui : readCommand()
+activate Ui
+Ui --> PharmaTracker : fullCommand
+deactivate Ui
 
-User -> PT : run()
-PT -> Parser : parse("dispenselog /date 2026-04-09")
+PharmaTracker -> Parser : parse(fullCommand)
 activate Parser
 
-alt no /date flag
-    Parser --> PT : new DispenseSummaryCommand()\nnote right : defaults to LocalDate.now()
-else /date flag present
-    Parser -> Parser : LocalDate.parse("2026-04-09")
-    Parser --> PT : new DispenseSummaryCommand(date)
+alt no /date flag provided
+    create DispenseSummaryCommand
+    Parser -> DispenseSummaryCommand : new DispenseSummaryCommand()
+    activate DispenseSummaryCommand
+    DispenseSummaryCommand --> Parser : c
+    deactivate DispenseSummaryCommand
+else valid /date flag provided
+    Parser -> Parser : LocalDate.parse(dateStr)
+    activate Parser
+    Parser --> Parser : date
+    deactivate Parser
+    create DispenseSummaryCommand
+    Parser -> DispenseSummaryCommand : new DispenseSummaryCommand(date)
+    activate DispenseSummaryCommand
+    DispenseSummaryCommand --> Parser : c
+    deactivate DispenseSummaryCommand
 else invalid date format
-    Parser --> User : "Invalid date format. Use: dispenselog /date YYYY-MM-DD"
+    Parser -> Ui : printMessage("Invalid date format. Use: dispenselog /date YYYY-MM-DD")
+    activate Ui
+    Ui --> Parser
+    deactivate Ui
 end
+
+Parser --> PharmaTracker : c
 deactivate Parser
 
-PT -> Cmd : execute(inventory, ui, customerList)
-activate Cmd
+PharmaTracker -> DispenseSummaryCommand : execute(inv, ui, customerList)
+activate DispenseSummaryCommand
 
-Cmd -> Inv : getDispenseLog()
-Inv --> Cmd : dispenseLog
+DispenseSummaryCommand -> Inventory : getDispenseLog()
+activate Inventory
+Inventory --> DispenseSummaryCommand : log
+deactivate Inventory
 
-Cmd -> Log : getRecordsByDate(date)
-Log --> Cmd : records
+DispenseSummaryCommand -> DispenseLog : getRecordsByDate(date)
+activate DispenseLog
+DispenseLog --> DispenseSummaryCommand : records
+deactivate DispenseLog
 
-Cmd -> Ui : printDispenseSummary(date, records)
+DispenseSummaryCommand -> Ui : printDispenseSummary(date, records)
 activate Ui
-
-alt records is empty
-    Ui --> User : "No dispense events recorded for <date>."
-else records present
-    loop for each DispenseRecord r in records
-        Ui --> User : "<index>. <time> | <medName> | Dosage: <dosage> | Qty: <qty> [| Patient: <name>]"
-    end
-    Ui --> User : "Total: N dispense event(s), M unit(s) dispensed."
-end
+Ui --> DispenseSummaryCommand
 deactivate Ui
-deactivate Cmd
 
+DispenseSummaryCommand --> PharmaTracker
+deactivate DispenseSummaryCommand
+
+PharmaTracker -> Storage : saveDispenseLog(inventory.getDispenseLog())
+activate Storage
+Storage --> PharmaTracker
+deactivate Storage
+
+deactivate PharmaTracker
 @enduml

@@ -7,7 +7,6 @@ participant ":Ui" as Ui
 participant "<<class>>\nPharmaTrackerParser" as Parser
 participant "c:ViewCustomerCommand" as ViewCustomerCommand
 participant "customerList:CustomerList" as CustomerList
-participant ":System.out" as Console
 participant "customer:Customer" as Customer
 
 User -> PharmaTracker : "view-customer 1"
@@ -21,11 +20,15 @@ deactivate Ui
 PharmaTracker -> Parser : parse(fullCommand)
 activate Parser
 
-create ViewCustomerCommand
-Parser -> ViewCustomerCommand : new ViewCustomerCommand(index)
-activate ViewCustomerCommand
-ViewCustomerCommand --> Parser : c
-deactivate ViewCustomerCommand
+alt description is not a valid integer
+    Parser -> Parser : throw PharmaTrackerException\n("Invalid format. Usage: view-customer INDEX")
+else valid index provided
+    create ViewCustomerCommand
+    Parser -> ViewCustomerCommand : new ViewCustomerCommand(index)
+    activate ViewCustomerCommand
+    ViewCustomerCommand --> Parser : c
+    deactivate ViewCustomerCommand
+end
 
 Parser --> PharmaTracker : c
 deactivate Parser
@@ -39,20 +42,15 @@ CustomerList --> ViewCustomerCommand : size
 deactivate CustomerList
 
 alt customer list is empty
-    ViewCustomerCommand -> Console : println("No customers registered yet.")
-    activate Console
-    Console --> ViewCustomerCommand
-    deactivate Console
-else index is invalid
-    ViewCustomerCommand -> CustomerList : size()
-    activate CustomerList
-    CustomerList --> ViewCustomerCommand : size
-    deactivate CustomerList
-
-    ViewCustomerCommand -> Console : println("Invalid index...")
-    activate Console
-    Console --> ViewCustomerCommand
-    deactivate Console
+    ViewCustomerCommand -> Ui : printMessage("No customers registered yet.")
+    activate Ui
+    Ui --> ViewCustomerCommand
+    deactivate Ui
+else index is out of range
+    ViewCustomerCommand -> Ui : printMessage("Invalid index...")
+    activate Ui
+    Ui --> ViewCustomerCommand
+    deactivate Ui
 else valid request
     ViewCustomerCommand -> CustomerList : getCustomer(index - 1)
     activate CustomerList
@@ -67,8 +65,6 @@ end
 
 ViewCustomerCommand --> PharmaTracker
 deactivate ViewCustomerCommand
-ViewCustomerCommand -[hidden]-> Parser
-destroy ViewCustomerCommand
 
 deactivate PharmaTracker
 @enduml

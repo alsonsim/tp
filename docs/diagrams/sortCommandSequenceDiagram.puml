@@ -1,44 +1,62 @@
 @startuml
+skinparam ArrowFontStyle plain
+
 actor User
 participant ":PharmaTracker" as PharmaTracker
-participant ":PharmaTrackerParser" as PharmaTrackerParser
+participant ":Ui" as Ui
+participant "<<class>>\nPharmaTrackerParser" as Parser
 participant "c:SortCommand" as SortCommand
-participant ":Inventory" as Inventory
-participant "med:Medication" as Medication
+participant "inv:Inventory" as Inventory
 
-User -> PharmaTracker : sort
+User -> PharmaTracker : "sort"
 activate PharmaTracker
 
-PharmaTracker -> PharmaTrackerParser : parseCommand("sort")
-activate PharmaTrackerParser
+PharmaTracker -> Ui : readCommand()
+activate Ui
+Ui --> PharmaTracker : fullCommand
+deactivate Ui
+
+PharmaTracker -> Parser : parse(fullCommand)
+activate Parser
 
 create SortCommand
-PharmaTrackerParser -> SortCommand : new SortCommand()
+Parser -> SortCommand : new SortCommand()
 activate SortCommand
-return c
+SortCommand --> Parser : c
+deactivate SortCommand
 
-return c
+Parser --> PharmaTracker : c
+deactivate Parser
 
-PharmaTracker -> SortCommand : execute(inventory, ui, customerList)
+PharmaTracker -> SortCommand : execute(inv, ui, customerList)
 activate SortCommand
 
 SortCommand -> Inventory : getMedications()
 activate Inventory
-return medicationList
+Inventory --> SortCommand : medicationList
+deactivate Inventory
 
-loop for each medication
-    SortCommand -> Medication : getExpiryDate()
-    activate Medication
-    return expiryDate
+alt inventory is empty
+    SortCommand -> Ui : printMessage("Inventory is empty.")
+    activate Ui
+    Ui --> SortCommand
+    deactivate Ui
+else medications present
+    note over SortCommand
+      medicationList.sort() is called with a Comparator
+      that parses each expiry date as yyyy-MM-dd.
+      Medications with unparseable dates are placed last
+      using LocalDate.MAX as a fallback.
+    end note
+
+    SortCommand -> Ui : printMessage(sorted.toString())
+    activate Ui
+    Ui --> SortCommand
+    deactivate Ui
 end
 
-SortCommand -> SortCommand : medicationList.sort(Comparator.comparing(expiry))
-activate SortCommand
-return
-
-SortCommand --> PharmaTracker : prints sorted list
+SortCommand --> PharmaTracker
 deactivate SortCommand
 
-PharmaTracker --> User : displays output
 deactivate PharmaTracker
 @enduml
