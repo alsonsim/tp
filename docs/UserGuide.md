@@ -515,10 +515,15 @@ Registers a new customer into the pharmacy's database.
 
 **Format:** `add-customer /id CUSTOMER_ID /n NAME /p PHONE [/addr ADDRESS] [/allergy ALLERGY1,ALLERGY2,...]`
 
+**Important notes on Command Format:**
+- **Strict Mandatory Order:** The mandatory flags (`/id`, `/n`, `/p`) must be entered in the exact order shown in the format above. 
+- **Flexible Optional Order:** Any optional flags you choose to include (`/addr`, `/allergy`) can be entered in any order, as long as they are placed after the mandatory fields. 
+- **Unique Customer IDs:** The system strictly prevents duplicate IDs. The `CUSTOMER_ID` must be unique. 
+
 **Mandatory Parameters:**
 * `/id CUSTOMER_ID`: A unique identifier for the customer (e.g., `C001`).
 * `/n NAME`: The full name of the customer.
-* `/p PHONE`: The customer's contact number.
+* `/p PHONE`: The customer's contact number. **Must start with '8' or '9'** (following standard Singapore phone number format).
 
 **Optional Parameters:**
 * `/addr ADDRESS`: The customer's residential or mailing address.
@@ -550,7 +555,7 @@ Removes an existing customer from the pharmacy's database.
 
 **Rules & Constraints:**
 * Deletes the customer at the specified `INDEX`.
-* The `INDEX` refers to the index number shown in the **most recently displayed** customer list (e.g., after running a `list-customers` or `find-customer` command).
+* The `INDEX` refers to the index number shown in the **most recently displayed** customer list (e.g., after running `list-customers` command).
 * The index **must be a positive integer** and must not exceed the total number of customers currently in the list.
 
 **Examples:**
