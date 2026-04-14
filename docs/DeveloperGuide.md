@@ -117,6 +117,8 @@ The system uses a pipe-delimited format for medication data. Customer data uses 
 
 **API:** `Ui.java`
 
+Note: In this guide, references to `Parser.parse()` refer to the concrete entry point `PharmaTrackerParser.parse()`.
+
 The UI component is solely responsible for handling all interactions with the user. It resides within the `seedu.pharmatracker.ui` package and acts as the bridge between the application's internal logic and the console.
 
 **Key Responsibilities:**
@@ -126,7 +128,7 @@ The UI component is solely responsible for handling all interactions with the us
 
 **Design Constraints & Rules for Developers:**
 To maintain a clean architecture, the UI component is strictly separated from the logic and data models.
-* **No Direct Printing:** Developers should **never** use `System.out.println()` directly within `Command`, `Parser`, or `Inventory` classes.
+* **No Direct Printing in Commands:** Command classes should avoid direct `System.out.println()` and route user-facing output through `Ui` methods (e.g., `ui.printMessage(...)`).
 * **Data Handoff:** If a command needs to display a result, it must process the data and pass the relevant object to a specific method inside the `Ui` class to handle the actual printing.
 
 ## Implementation
@@ -212,8 +214,8 @@ find KEYWORD
 6. The command iterates over every `Medication`, calling `getName()` on each one. If the name
    contains the keyword (case-insensitive), the medication is added to `matchingMedications`.
 7. After the loop, the result is handled via an `alt` branch:
-   - If `matchingMedications` is empty, `"No medications found matching: ..."` is printed
-     directly to `System.out` and the command returns early.
+    - If `matchingMedications` is empty, `"No medications found matching: ..."` is printed
+       via `ui.printMessage(...)` and the command returns early.
    - Otherwise, `Ui.printFindResults(matchingMedications)` is called to display the numbered
      list of matches.
 
@@ -227,7 +229,7 @@ The following sequence diagram shows the full execution flow of the `find` comma
 |--------|--------|--------|
 | Case-insensitive matching | `toLowerCase()` on both sides | Reduces user friction; pharmacy staff should not need to remember exact capitalisation |
 | Partial match via `contains()` | Yes | A keyword like `Para` usefully returns `Paracetamol`; exact-match would be too restrictive |
-| No-results path prints directly | `System.out` in command | The no-results message is a simple one-liner; a dedicated `Ui` method would be added if the message ever needed formatting |
+| No-results path output | `ui.printMessage(...)` | Keeps output routing consistent with command-layer UI separation and avoids direct console writes in command logic |
 
 ---
 
@@ -248,7 +250,7 @@ view INDEX
 4. A new `ViewCommand(index)` object is constructed with the extracted index.
 5. `PharmaTracker.run()` calls `ViewCommand.execute()`, which calls `Inventory.getMedications()`
    and validates the request via an `alt` block:
-   - If the inventory is empty, `"Inventory is empty."` is printed directly to `System.out`
+    - If the inventory is empty, `"Inventory is empty."` is printed via `ui.printMessage(...)`
      and the command returns early.
    - If the index is out of range (less than 1 or greater than list size), `getMedications()` is
      called again to obtain the current size, an invalid-index error message is printed, and the
@@ -699,7 +701,7 @@ sort
 3. `Parser.parse()` identifies the command word `sort` and returns a new `SortCommand` object — no arguments are required.
 4. `PharmaTracker.run()` calls `SortCommand.execute()`, which retrieves the medication list from `Inventory.getMedications()`.
 5. If the list is empty, `"Inventory is empty."` is printed and the command returns early.
-6. Otherwise, the list is sorted in-place using `ArrayList.sort()` with a custom `Comparator`. For each medication, `getExpiryDate()` is retrieved and parsed using two formatters (`yyyy-MM-dd` then `dd/MM/yyyy`). If both fail, `LocalDate.MAX` is used as a fallback.
+6. Otherwise, the list is sorted in-place using `ArrayList.sort()` with a custom `Comparator`. For each medication, `getExpiryDate()` is parsed using the canonical `yyyy-MM-dd` format used by stored medication records. If parsing fails, `LocalDate.MAX` is used as a fallback.
 7. The sorted list is printed to the console with 1-based indices.
 
 The following sequence diagram shows the full execution flow of the `sort` command:
@@ -713,7 +715,7 @@ The following sequence diagram shows the full execution flow of the `sort` comma
 | Sort in-place | Yes | Mutates the `Inventory` directly; sort order is preserved for subsequent `list` calls |
 | `LocalDate.MAX` fallback for bad dates | Yes | Keeps bad-data records at the end without crashing; staff can then inspect and fix them |
 | No arguments | None | Sorting always operates on the full inventory; no filtering is needed |
-| Direct `System.out` output | `System.out` in command | The sort result is a full list render; a dedicated `Ui` method would be added if richer formatting is ever needed |
+| Output routing | `ui.printMessage(...)` in command | Keeps sort output consistent with the command-to-UI output path used across features |
 
 ---
 
@@ -823,7 +825,7 @@ The following sequence diagram shows the full execution flow of the `label` comm
 |--------|--------|--------|
 | Tag line omitted when empty | Yes | A blank tag line on a physical label looks unprofessional and adds no information |
 | Two-stage guard (empty inventory, then out-of-range) | Yes | Produces a clearer error message; avoids an `IndexOutOfBoundsException` when the list is empty |
-| Direct `System.out` for label body | `System.out` in command | The label block is self-contained formatting; moving it to `Ui` would offer no architectural benefit for a single-command output |
+| Output routing for label body | `ui.printMessage(...)` | Keeps label output consistent with command-layer output conventions while still allowing multi-line formatted labels |
 
 ---
 

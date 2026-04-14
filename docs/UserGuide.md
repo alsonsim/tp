@@ -62,6 +62,7 @@ PharmaTracker is a command-line application for pharmacy staff to manage medicat
 - Parameters with a `/` prefix are flags (e.g. `/n NAME`).
 - INDEX refers to the 1-based position of an item as shown in the list/inventory.
 - Most commands require an authenticated session. Use `register` and `login` first.
+- Output snippets in this guide may be simplified excerpts. Actual CLI output includes divider lines from the `Ui` component.
 
 ---
 
@@ -448,13 +449,10 @@ Examples:
 
 Expected output (example):
 ```
--------------------------------
-Low Stock Report (threshold: 20)
--------------------------------
+Medications low on stock (below 20 units):
 1. Paracetamol | 500mg | Qty: 5 | Expiry: 31/12/2026
 2. Ibuprofen | 200mg | Qty: 12 | Expiry: 01/06/2026
 Total: 2 medication(s) low on stock.
--------------------------------
 ```
 
 ---
@@ -485,24 +483,17 @@ Displays a summary of all medications dispensed on a given date. Defaults to tod
 
 **Expected output (today's log):**
 ```
--------------------------------
 Dispense Log for 2026-04-09
--------------------------------
 1. 09:15 | Paracetamol | Dosage: 500mg | Qty: 2 | Patient: Alice Tan
 2. 11:42 | Ibuprofen | Dosage: 200mg | Qty: 1
 3. 14:30 | Amoxicillin | Dosage: 250mg | Qty: 3 | Patient: Bob Lee
--------------------------------
 Total: 3 dispense event(s), 6 unit(s) dispensed.
--------------------------------
 ```
 
 **Expected output (no events recorded):**
 ```
--------------------------------
 Dispense Log for 2026-04-09
--------------------------------
 No dispense events recorded for 2026-04-09.
--------------------------------
 ```
 
 ---
