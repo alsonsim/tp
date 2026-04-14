@@ -7,8 +7,6 @@ participant ":Ui" as Ui
 participant "<<class>>\nPharmaTrackerParser" as Parser
 participant "c:FindCommand" as FindCommand
 participant "inv:Inventory" as Inventory
-participant "med:Medication" as Medication
-participant ":System.out" as Console
 
 User -> PharmaTracker : "find paracetamol"
 activate PharmaTracker
@@ -21,11 +19,15 @@ deactivate Ui
 PharmaTracker -> Parser : parse(fullCommand)
 activate Parser
 
-create FindCommand
-Parser -> FindCommand : new FindCommand(keyword)
-activate FindCommand
-FindCommand --> Parser : c
-deactivate FindCommand
+alt keyword is empty
+    Parser -> Parser : throw PharmaTrackerException\n("Please provide a keyword to search for.")
+else keyword provided
+    create FindCommand
+    Parser -> FindCommand : new FindCommand(keyword)
+    activate FindCommand
+    FindCommand --> Parser : c
+    deactivate FindCommand
+end
 
 Parser --> PharmaTracker : c
 deactivate Parser
@@ -38,25 +40,17 @@ activate Inventory
 Inventory --> FindCommand : medicationList
 deactivate Inventory
 
-loop for each medication
-    FindCommand -> Medication : getName()
-    activate Medication
-    Medication --> FindCommand : name
-    deactivate Medication
-
-    alt name contains keyword
-        FindCommand -> FindCommand : matchingMedications.add(med)
-        activate FindCommand
-        FindCommand --> FindCommand
-        deactivate FindCommand
-    end
-end
+note over FindCommand
+  For each medication, getName() is called.
+  If the name contains the keyword (case-insensitive),
+  the medication is added to matchingMedications.
+end note
 
 alt no matching medications found
-    FindCommand -> Console : println("No medications found matching: ...")
-    activate Console
-    Console --> FindCommand
-    deactivate Console
+    FindCommand -> Ui : printMessage("No medications found matching: ...")
+    activate Ui
+    Ui --> FindCommand
+    deactivate Ui
 else matches found
     FindCommand -> Ui : printFindResults(matchingMedications)
     activate Ui
@@ -66,8 +60,6 @@ end
 
 FindCommand --> PharmaTracker
 deactivate FindCommand
-FindCommand -[hidden]-> Parser
-destroy FindCommand
 
 deactivate PharmaTracker
 @enduml
