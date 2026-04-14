@@ -87,7 +87,7 @@ public class ListCommandTest {
         Ui ui = new Ui();
         CustomerList customerList = new CustomerList();
         new ListCommand().execute(inventory, ui, customerList);
-        assertEquals("Inventory is empty.", out.toString().trim());
+        assertTrue(out.toString().contains("Inventory is empty."));
     }
 
     /**

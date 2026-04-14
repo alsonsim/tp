@@ -1,26 +1,49 @@
 @startuml
+skinparam ArrowFontStyle plain
+
 actor User
 participant ":PharmaTracker" as PT
-participant ":Parser" as P
-participant ":ListCommand" as LC
-participant ":Inventory" as INV
-participant ":Ui" as UI
+participant ":Ui" as Ui
+participant "<<class>>\nPharmaTrackerParser" as Parser
+participant "c:ListCommand" as Cmd
+participant "inv:Inventory" as Inv
 
-User -> PT : list
-PT -> P : parse("list")
-P --> PT : new ListCommand()
-PT -> LC : execute(inventory, ui)
-LC -> INV : getMedications()
-INV --> LC : medicationList
+User -> PT : "list"
+activate PT
+
+PT -> Ui : readCommand()
+activate Ui
+Ui --> PT : fullCommand
+deactivate Ui
+
+PT -> Parser : parse(fullCommand)
+activate Parser
+Parser --> PT : new ListCommand()
+deactivate Parser
+
+PT -> Cmd : execute(inventory, ui, customerList)
+activate Cmd
+
+Cmd -> Inv : getMedications()
+activate Inv
+Inv --> Cmd : medicationList
+deactivate Inv
 
 alt medicationList is empty
-    LC -> UI : print("Inventory is empty.")
+    Cmd -> Ui : printMessage("Inventory is empty.")
 else medicationList not empty
-    LC -> UI : printMedicationList(medicationList)
-    loop for each Medication in medicationList
-        UI -> UI : format entry (index | name | dosage | qty | expiry [LOW STOCK?])
+    Cmd -> Ui : printMessage("PharmaTracker Inventory:")
+    loop for each medication in medicationList
+        Cmd -> Ui : printMessage("<index>. <medication> [LOW STOCK]")
     end
-    UI -> UI : print total count
+    Cmd -> Ui : printMessage(DIVIDER)
+    Cmd -> Ui : printMessage("Total Medications: N")
+    alt lowStockCount > 0
+        Cmd -> Ui : printMessage("Low Stock Alerts: X medication(s) need restocking.")
+    end
 end
-UI --> User : displays output
+
+Cmd --> PT
+deactivate Cmd
+deactivate PT
 @enduml

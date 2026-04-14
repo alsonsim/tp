@@ -1,53 +1,96 @@
 @startuml
-skinparam backgroundColor white
-skinparam sequenceArrowThickness 2
+skinparam ArrowFontStyle plain
 
 actor User
 participant ":PharmaTracker" as PT
-participant ":Parser" as Parser
+participant ":Ui" as Ui
+participant "<<class>>\nPharmaTrackerParser" as Parser
 participant "c:Command" as Cmd
-participant ":Inventory" as Inv
+participant "inv:Inventory" as Inv
 participant "med:Medication" as Med
 participant ":RestockAlertService" as AlertService
 participant ":Storage" as Storage
-participant ":Ui" as Ui
 
 User -> PT : run()
+activate PT
+
 PT -> Ui : readCommand()
+activate Ui
 Ui --> PT : fullCommand
+deactivate Ui
+
 PT -> Parser : parse(fullCommand)
+activate Parser
 
 alt set-threshold INDEX /threshold NUMBER
     Parser --> PT : new SetThresholdCommand(index, threshold)
-    PT -> Cmd : execute(inventory, ui, customerList)
-    Cmd -> Inv : getMedication(index - 1)
-    Inv --> Cmd : medication
-    Cmd -> Med : setMinimumStockThreshold(threshold)
-    Cmd -> Ui : printMessage("Updated minimum stock threshold...")
 else alerts
     Parser --> PT : new AlertsCommand()
-    PT -> Cmd : execute(inventory, ui, customerList)
-    Cmd -> AlertService : getActiveAlerts()
-    AlertService --> Cmd : activeAlerts
-    Cmd -> Ui : printActiveAlerts(activeAlerts)
 else ack-alert ALERT_INDEX
     Parser --> PT : new AcknowledgeAlertCommand(index)
-    PT -> Cmd : execute(inventory, ui, customerList)
+else alert-history
+    Parser --> PT : new AlertHistoryCommand()
+end
+deactivate Parser
+
+PT -> Cmd : execute(inventory, ui, customerList)
+activate Cmd
+
+alt SetThresholdCommand
+    Cmd -> Inv : getMedication(index - 1)
+    activate Inv
+    Inv --> Cmd : medication
+    deactivate Inv
+    Cmd -> Med : setMinimumStockThreshold(threshold)
+    activate Med
+    Med --> Cmd
+    deactivate Med
+    Cmd -> Ui : printMessage("Updated minimum stock threshold...")
+else AlertsCommand
+    Cmd -> AlertService : getActiveAlerts()
+    activate AlertService
+    AlertService --> Cmd : activeAlerts
+    deactivate AlertService
+    Cmd -> Ui : printActiveAlerts(activeAlerts)
+else AcknowledgeAlertCommand
     Cmd -> AlertService : acknowledgeActiveAlert(index)
+    activate AlertService
     AlertService --> Cmd : acknowledged / null
+    deactivate AlertService
     alt valid alert index
         Cmd -> Ui : printMessage("Acknowledged alert...")
     else invalid alert index
         Cmd -> Ui : printMessage("Invalid alert index...")
     end
-else alert-history
-    Parser --> PT : new AlertHistoryCommand()
-    PT -> Cmd : execute(inventory, ui, customerList)
+else AlertHistoryCommand
     Cmd -> AlertService : getAlertHistory()
+    activate AlertService
     AlertService --> Cmd : history
+    deactivate AlertService
     Cmd -> Ui : printAlertHistory(history)
 end
 
+Cmd --> PT
+deactivate Cmd
+
 PT -> AlertService : evaluateInventory(inventory)
+activate AlertService
+note right of AlertService
+  - Evaluates all medications against thresholds
+  - Creates/updates/auto-resolves alerts as needed
+  - Cleans up orphaned alerts for deleted medications
+end note
+AlertService --> PT
+deactivate AlertService
+
+alt command is list AND activeAlerts not empty AND inventory list not empty
+    PT -> Ui : printAutoRestockAlertSummary(activeAlerts)
+end
+
 PT -> Storage : saveAlertHistory(alertService.getAlertHistory())
+activate Storage
+Storage --> PT
+deactivate Storage
+
+deactivate PT
 @enduml

@@ -2,103 +2,68 @@
 skinparam ArrowFontStyle plain
 
 actor User
-participant ":PharmaTracker" as PharmaTracker
+participant ":PharmaTracker" as PT
 participant ":Ui" as Ui
 participant "<<class>>\nPharmaTrackerParser" as Parser
-participant "<<class>>\nAppServices" as AppServices
-participant ":AuthService" as AuthService
+participant "c:Command" as Cmd
+participant ":AuthService" as Auth
 participant ":Storage" as Storage
 
-User -> PharmaTracker : "register / login / logout"
-activate PharmaTracker
+User -> PT : run()
+activate PT
 
-PharmaTracker -> Ui : readCommand()
+PT -> Ui : readCommand()
 activate Ui
-Ui --> PharmaTracker : fullCommand
+Ui --> PT : fullCommand
 deactivate Ui
 
-PharmaTracker -> Parser : parse(fullCommand)
+PT -> Parser : parse(fullCommand)
 activate Parser
 
-alt "register USERNAME /p PASSWORD"
-    create "c:RegisterCommand" as RegisterCommand
-    Parser -> RegisterCommand : new RegisterCommand(username, password)
-    activate RegisterCommand
-    RegisterCommand --> Parser : c
-    deactivate RegisterCommand
-else "login USERNAME /p PASSWORD"
-    create "c:LoginCommand" as LoginCommand
-    Parser -> LoginCommand : new LoginCommand(username, password)
-    activate LoginCommand
-    LoginCommand --> Parser : c
-    deactivate LoginCommand
-else "logout"
-    create "c:LogoutCommand" as LogoutCommand
-    Parser -> LogoutCommand : new LogoutCommand()
-    activate LogoutCommand
-    LogoutCommand --> Parser : c
-    deactivate LogoutCommand
+alt register USERNAME /p PASSWORD
+    Parser --> PT : new RegisterCommand(username, password)
+else login USERNAME /p PASSWORD
+    Parser --> PT : new LoginCommand(username, password)
+else logout
+    Parser --> PT : new LogoutCommand()
 end
-
-Parser --> PharmaTracker : c
 deactivate Parser
 
-alt command requires authentication and user not logged in
-    PharmaTracker -> Ui : printMessage("Authentication required.")
-    activate Ui
-    Ui --> PharmaTracker
-    deactivate Ui
-else authentication satisfied
-    PharmaTracker -> c : execute(inv, ui, customerList)
-    activate c
+PT -> Cmd : execute(inventory, ui, customerList)
+activate Cmd
 
-    c -> AppServices : getAuthService()
-    activate AppServices
-    AppServices --> c : authService
-    deactivate AppServices
-
-    alt register
-        c -> AuthService : register(username, password)
-        activate AuthService
-        AuthService --> c
-        deactivate AuthService
-        c -> Ui : printMessage("Registration successful...")
-        activate Ui
-        Ui --> c
-        deactivate Ui
-    else login
-        c -> AuthService : login(username, password)
-        activate AuthService
-        AuthService --> c
-        deactivate AuthService
-        c -> Ui : printMessage("Login successful...")
-        activate Ui
-        Ui --> c
-        deactivate Ui
-    else logout
-        c -> AuthService : logout()
-        activate AuthService
-        AuthService --> c
-        deactivate AuthService
-        c -> Ui : printMessage("Logged out successfully: ...")
-        activate Ui
-        Ui --> c
-        deactivate Ui
-    end
-
-    c --> PharmaTracker
-    deactivate c
-
-    PharmaTracker -> Storage : saveUsers(authService.getUsersSnapshot())
-    activate Storage
-    Storage --> PharmaTracker
-    deactivate Storage
-
-    PharmaTracker -> Storage : saveSession(authService.getCurrentUsername())
-    activate Storage
-    Storage --> PharmaTracker
-    deactivate Storage
+alt RegisterCommand
+    Cmd -> Auth : register(username, password)
+    activate Auth
+    Auth --> Cmd : success / validation error
+    deactivate Auth
+    Cmd -> Ui : printMessage(result)
+else LoginCommand
+    Cmd -> Auth : login(username, password)
+    activate Auth
+    Auth --> Cmd : success / validation error
+    deactivate Auth
+    Cmd -> Ui : printMessage(result)
+else LogoutCommand
+    Cmd -> Auth : logout()
+    activate Auth
+    Auth --> Cmd : done
+    deactivate Auth
+    Cmd -> Ui : printMessage("Logged out successfully")
 end
 
-deactivate PharmaTracker
+Cmd --> PT
+deactivate Cmd
+
+PT -> Storage : saveUsers(authService.getUsersSnapshot())
+activate Storage
+Storage --> PT
+deactivate Storage
+
+PT -> Storage : saveSession(authService.getCurrentUsername())
+activate Storage
+Storage --> PT
+deactivate Storage
+
+deactivate PT
 @enduml

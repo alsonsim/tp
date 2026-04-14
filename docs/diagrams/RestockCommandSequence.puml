@@ -8,6 +8,7 @@ participant ":Parser" as Parser
 participant ":RestockCommand" as Cmd
 participant ":Inventory" as Inv
 participant ":Medication" as Med
+participant ":Ui" as Ui
 
 User -> PT : run()
 PT -> Parser : parse("restock 1 /q 50")
@@ -17,11 +18,13 @@ Cmd -> Inv : getMedications()
 Inv --> Cmd : medications
 
 alt invalid index or invalid quantity
-    Cmd --> User : error message
+    Cmd -> Ui : printMessage("error message")
+    Ui --> User : error message
 else valid
     Cmd -> Inv : getMedication(0)
     Inv --> Cmd : med
     Cmd -> Med : setQuantity(currentQty + 50)
-    Cmd --> User : "Restocked successfully! ..."
+    Cmd -> Ui : printMessage("Restocked successfully! ...")
+    Ui --> User : restock confirmation
 end
 @enduml

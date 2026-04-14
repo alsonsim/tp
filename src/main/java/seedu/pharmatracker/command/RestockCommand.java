@@ -55,22 +55,23 @@ public class RestockCommand extends Command {
 
         if (!isValidQuantity()) {
             logger.log(Level.WARNING, "Restock failed: invalid quantity {0}", quantity);
-            System.out.println("Quantity to restock must be between " + MIN_QUANTITY
+            ui.printMessage("Quantity to restock must be between " + MIN_QUANTITY
                     + " and " + MAX_QUANTITY + ".");
             return;
         }
 
         if (inventory.getMedications() == null || inventory.getMedications().isEmpty()) {
             logger.log(Level.WARNING, "Restock failed: inventory is empty.");
-            System.out.println("Inventory is empty. No medications to restock.");
+            ui.printMessage("Inventory is empty. No medications to restock.");
             return;
         }
 
         if (!isValidMedicationIndex(inventory)) {
+            int inventorySize = inventory.getMedications().size();
             logger.log(Level.WARNING, "Restock failed: invalid index {0}, inventory size={1}",
-                    new Object[]{index, inventory.getMedicationCount()});
-            System.out.println("Invalid index. Please enter a number between 1 and "
-                    + inventory.getMedicationCount() + ".");
+                new Object[]{index, inventorySize});
+            ui.printMessage("Invalid index. Please enter a number between 1 and "
+                + inventorySize + ".");
             return;
         }
 
@@ -78,7 +79,7 @@ public class RestockCommand extends Command {
 
         if (medication == null) {
             logger.log(Level.SEVERE, "Medication at index {0} returned null unexpectedly.", index);
-            System.out.println("An unexpected error occurred. Medication not found.");
+            ui.printMessage("An unexpected error occurred. Medication not found.");
             return;
         }
 
@@ -87,7 +88,7 @@ public class RestockCommand extends Command {
         if (!isStockNonNegative(oldStock)) {
             logger.log(Level.SEVERE, "Medication {0} has negative stock: {1}",
                     new Object[]{medication.getName(), oldStock});
-            System.out.println("Data integrity error: " + medication.getName()
+            ui.printMessage("Data integrity error: " + medication.getName()
                     + " has invalid stock (" + oldStock + "). Restock aborted.");
             return;
         }
@@ -95,12 +96,12 @@ public class RestockCommand extends Command {
         if (wouldOverflow(oldStock)) {
             logger.log(Level.WARNING, "Restock failed: resulting stock would exceed maximum for {0}",
                     medication.getName());
-            System.out.println("Restock rejected. Resulting stock would exceed the maximum allowed ("
+            ui.printMessage("Restock rejected. Resulting stock would exceed the maximum allowed ("
                     + MAX_QUANTITY + "). Current stock: " + oldStock + ".");
             return;
         }
 
-        performRestock(medication, oldStock);
+        performRestock(medication, oldStock, ui);
     }
 
     /**
@@ -108,8 +109,9 @@ public class RestockCommand extends Command {
      *
      * @param medication The medication to restock.
      * @param oldStock   The stock level before restocking.
+     * @param ui         The user interface for displaying messages.
      */
-    private void performRestock(Medication medication, int oldStock) {
+    private void performRestock(Medication medication, int oldStock, Ui ui) {
         medication.setQuantity(oldStock + quantity);
         int updatedStock = medication.getQuantity();
 
@@ -119,8 +121,8 @@ public class RestockCommand extends Command {
         logger.log(Level.INFO, "Restock successful: medication={0}, added={1}, oldStock={2}, updatedStock={3}",
                 new Object[]{medication.getName(), quantity, oldStock, updatedStock});
 
-        System.out.println("Restocked successfully!");
-        System.out.println("Medication: " + medication.getName()
+        ui.printMessage("Restocked successfully!");
+        ui.printMessage("Medication: " + medication.getName()
                 + " | Added: " + quantity + " units"
                 + " | Updated Stock: " + updatedStock + " units.");
     }
@@ -141,7 +143,7 @@ public class RestockCommand extends Command {
      * @return true if index is valid.
      */
     private boolean isValidMedicationIndex(Inventory inventory) {
-        return index >= 1 && index <= inventory.getMedicationCount();
+        return index >= 1 && index <= inventory.getMedications().size();
     }
 
     /**

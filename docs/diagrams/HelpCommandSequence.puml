@@ -5,10 +5,9 @@ actor User
 participant ":PharmaTracker" as PT
 participant ":Ui" as Ui
 participant "<<class>>\nPharmaTrackerParser" as Parser
-participant "c:ListCustomersCommand" as Cmd
-participant "cust:CustomerList" as CustList
+participant "c:HelpCommand" as Cmd
 
-User -> PT : "list-customers"
+User -> PT : "help"
 activate PT
 
 PT -> Ui : readCommand()
@@ -18,28 +17,18 @@ deactivate Ui
 
 PT -> Parser : parse(fullCommand)
 activate Parser
-Parser --> PT : new ListCustomersCommand()
+Parser --> PT : new HelpCommand()
 deactivate Parser
 
 PT -> Cmd : execute(inventory, ui, customerList)
 activate Cmd
-
-Cmd -> Ui : printCustomerList(customerList)
+Cmd -> Ui : printHelpMessage()
 activate Ui
-Ui -> CustList : getAllCustomers()
-activate CustList
-CustList --> Ui : customers
-deactivate CustList
-
-alt customers is empty
-    Ui --> User : "No customers registered yet."
-else customers exist
-    Ui --> User : numbered customer list + total count
-end
-
+Ui --> User : full help menu
 Ui --> Cmd
 deactivate Ui
 Cmd --> PT
 deactivate Cmd
+
 deactivate PT
 @enduml

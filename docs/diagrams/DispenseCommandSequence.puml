@@ -1,58 +1,83 @@
 @startuml
-skinparam backgroundColor white
-skinparam sequenceArrowThickness 2
+skinparam ArrowFontStyle plain
 
 actor User
 participant ":PharmaTracker" as PT
-participant ":Parser" as Parser
-participant ":DispenseCommand" as Cmd
-participant ":Inventory" as Inv
-participant ":DispenseLog" as Log
-participant ":CustomerList" as CustList
+participant ":Ui" as Ui
+participant "<<class>>\nPharmaTrackerParser" as Parser
+participant "c:DispenseCommand" as Cmd
+participant "inv:Inventory" as Inv
+participant "log:DispenseLog" as Log
+participant "cust:CustomerList" as CustList
 participant ":Storage" as Storage
 
-User -> PT : run()
-PT -> Parser : parse("dispense 1 /q 20 /c 1")
-Parser --> PT : new DispenseCommand(1, 20, 1)
+User -> PT : "dispense 1 /q 20 /c 1"
+activate PT
+
+PT -> Ui : readCommand()
+activate Ui
+Ui --> PT : fullCommand
+deactivate Ui
+
+PT -> Parser : parse(fullCommand)
+activate Parser
+
+alt missing /q or invalid format
+    Parser -> Parser : println("Invalid format. Use: dispense INDEX /q QUANTITY [/c CUSTOMER_INDEX]")
+    Parser --> PT : null
+else valid format
+    Parser --> PT : new DispenseCommand(1, 20, 1)
+end
+deactivate Parser
+
 PT -> Cmd : execute(inventory, ui, customerList)
-Cmd -> Inv : getMedications()
-Inv --> Cmd : medications
+activate Cmd
 
 alt invalid quantity
-    Cmd --> User : "Invalid quantity."
+    Cmd -> Ui : printMessage("Invalid quantity.")
 else empty inventory
-    Cmd --> User : "Inventory is empty."
+    Cmd -> Ui : printMessage("Inventory is empty.")
 else invalid medication index
-    Cmd --> User : "Invalid index."
+    Cmd -> Ui : printMessage("Invalid index.")
 else medication is expired
-    Cmd --> User : "Cannot dispense expired medication."
+    Cmd -> Ui : printMessage("Cannot dispense expired medication.")
 else quantity exceeds stock
-    Cmd --> User : "Insufficient stock."
+    Cmd -> Ui : printMessage("Insufficient stock.")
 else invalid customer index
-    Cmd --> User : "Invalid customer index."
+    Cmd -> Ui : printMessage("Invalid customer index.")
 else allergy conflict
-    Cmd --> User : "WARNING: Allergy conflict detected!"
-else all valid
-    Cmd -> Inv : getMedication(0)
+    Cmd -> Ui : printAllergyWarning(customerName, allergen)
+else all validations pass
+    Cmd -> Inv : getMedication(index - 1)
+    activate Inv
     Inv --> Cmd : med
-    note right of Cmd : performDispense(med)
-    Cmd -> Inv : med.setQuantity(currentQty - 20)
-    Cmd --> User : "Dispensing successfully!"
+    deactivate Inv
 
-    note right of Cmd : Record to dispense log
+    Cmd -> Inv : med.setQuantity(currentQty - quantity)
+    Cmd -> Ui : printMessage("Dispensing successfully!")
+    Cmd -> Ui : printMessage("Medication: ...")
+    Cmd -> Ui : printMessage("Amount: ...")
+    Cmd -> Ui : printMessage("Updated Stock: ...")
+
     Cmd -> Inv : getDispenseLog()
+    activate Inv
     Inv --> Cmd : dispenseLog
-    Cmd -> Log : addRecord(new DispenseRecord(date, time, name, dosage, qty, patient))
+    deactivate Inv
+    Cmd -> Log : addRecord(new DispenseRecord(...))
 
     alt /c flag provided
-        Cmd -> CustList : getCustomer(0)
+        Cmd -> CustList : getCustomer(customerIndex - 1)
+        activate CustList
         CustList --> Cmd : customer
+        deactivate CustList
         Cmd -> CustList : customer.addDispensingHistory(record)
-        Cmd --> User : "Recorded for customer: [C001] ..."
+        Cmd -> Ui : printMessage("Recorded for customer: [C001] ...")
     end
 
-    PT -> Storage : save(inventory)
-    PT -> Storage : saveCustomers(customerList)
-    PT -> Storage : saveDispenseLog(dispenseLog)
+    PT -> Storage : saveDispenseLog(inventory.getDispenseLog())
 end
+
+Cmd --> PT
+deactivate Cmd
+deactivate PT
 @enduml

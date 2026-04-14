@@ -59,4 +59,25 @@ public class RestockAlertServiceTest {
         assertEquals(0, service.getActiveAlerts().size());
         assertTrue(service.getAlertHistory().get(0).isAcknowledged());
     }
+
+    @Test
+    public void evaluateInventory_medicationDeleted_autoResolvesOrphanedAlert() {
+        Inventory inventory = new Inventory();
+        Medication med = new Medication("Ibuprofen", "200mg", 5, "2027-01-01", "painkiller");
+        med.setMinimumStockThreshold(10);
+        inventory.addMedication(med);
+
+        RestockAlertService service = new RestockAlertService(null);
+        service.evaluateInventory(inventory);
+
+        // Delete medication and re-evaluate to trigger orphaned-alert cleanup.
+        inventory.removeMedication(med);
+        service.evaluateInventory(inventory);
+
+        assertEquals(0, service.getActiveAlerts().size());
+        assertEquals(1, service.getAlertHistory().size());
+        assertTrue(service.getAlertHistory().get(0).isAcknowledged());
+        assertEquals("Auto-resolved: medication deleted from inventory.",
+                service.getAlertHistory().get(0).getAcknowledgmentNote());
+    }
 }

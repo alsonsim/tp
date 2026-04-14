@@ -1,0 +1,90 @@
+@startuml
+skinparam ArrowFontStyle plain
+
+actor User
+participant ":PharmaTracker" as PT
+participant ":Storage" as Storage
+participant "inv:Inventory" as Inv
+participant "cust:CustomerList" as CustList
+participant ":AuthService" as Auth
+participant ":RestockAlertService" as AlertService
+
+User -> PT : launch app
+activate PT
+
+PT -> Storage : load()
+activate Storage
+Storage --> PT : inventory
+deactivate Storage
+
+PT -> Storage : loadCustomers()
+activate Storage
+Storage --> PT : customerList
+deactivate Storage
+
+PT -> Storage : loadUsers()
+activate Storage
+Storage --> PT : users map
+deactivate Storage
+
+PT -> Storage : loadSession()
+activate Storage
+Storage --> PT : currentUsername
+deactivate Storage
+
+PT -> Storage : loadAlertHistory()
+activate Storage
+Storage --> PT : alertHistory
+deactivate Storage
+
+PT -> Storage : loadDispenseLog()
+activate Storage
+Storage --> PT : dispenseLog
+deactivate Storage
+
+User -> PT : execute any mutating command
+
+PT -> Storage : save(inventory)
+activate Storage
+PT -> Inv : getMedications()
+Inv --> PT
+Storage --> PT
+deactivate Storage
+
+PT -> Storage : saveCustomers(customerList)
+activate Storage
+PT -> CustList : size()/getCustomer(i)
+CustList --> PT
+Storage --> PT
+deactivate Storage
+
+PT -> Storage : saveUsers(auth.getUsersSnapshot())
+activate Storage
+PT -> Auth : getUsersSnapshot()
+Auth --> PT
+Storage --> PT
+deactivate Storage
+
+PT -> Storage : saveSession(auth.getCurrentUsername())
+activate Storage
+PT -> Auth : getCurrentUsername()
+Auth --> PT
+Storage --> PT
+deactivate Storage
+
+PT -> Storage : saveAlertHistory(alertService.getAlertHistory())
+activate Storage
+PT -> AlertService : getAlertHistory()
+AlertService --> PT
+Storage --> PT
+deactivate Storage
+
+PT -> Storage : saveDispenseLog(inventory.getDispenseLog())
+activate Storage
+PT -> Inv : getDispenseLog()
+Inv --> PT
+Storage --> PT
+deactivate Storage
+
+deactivate PT
+@enduml

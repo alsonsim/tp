@@ -1,0 +1,37 @@
+@startuml
+skinparam ArrowFontStyle plain
+
+actor User
+participant ":PharmaTracker" as PT
+participant ":Ui" as Ui
+participant "<<class>>\nPharmaTrackerParser" as Parser
+participant "c:ExitCommand" as Cmd
+
+User -> PT : "exit"
+activate PT
+
+PT -> Ui : readCommand()
+activate Ui
+Ui --> PT : fullCommand
+deactivate Ui
+
+PT -> Parser : parse(fullCommand)
+activate Parser
+Parser --> PT : new ExitCommand()
+deactivate Parser
+
+PT -> Cmd : execute(inventory, ui, customerList)
+activate Cmd
+Cmd -> Ui : printExitMessage()
+activate Ui
+Ui --> User : farewell message
+deactivate Ui
+
+alt shouldActuallyExit == true
+    Cmd -> Cmd : System.exit(0)
+else test mode
+    Cmd --> PT : return without terminating JVM
+end
+deactivate Cmd
+deactivate PT
+@enduml

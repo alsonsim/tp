@@ -37,7 +37,7 @@ Implemented the core inventory overview command that provides a high-level summa
 - **Visual Cues**: Automatically flags items with a quantity of less than 20 as `[LOW STOCK]` to provide immediate visual priority for replenishment (consistent with the default threshold for the `lowstock` command).
 - **Reference Point**: Displays 1-based indices required for all other medication-based commands like `delete`, `view`, and `dispense`.
 
-#### 3. List Customers (`listcustomers`)
+#### 3. List Customers (`list-customers`)
 
 Implemented a read-only command that displays all registered customers with their customer ID, name, and phone number, along with a total count. Handles the empty-list case with a clear user-facing message.
 
@@ -49,6 +49,23 @@ Implemented an additive restock command that tops up an existing medication's st
 - Distinct from `update` by design — prevents accidental stock wipes during routine restocking workflows.
 - Validates both index and quantity before modifying any data.
 
+#### 5. Auto Restock Alert System Improvements
+
+Implemented two critical bug fixes to ensure the auto restock alert feature behaves correctly in edge cases:
+
+**Bug Fix 1: Suppress Alerts When Inventory is Empty**
+- **Issue**: Auto restock alert summaries were displayed even when the inventory was empty, showing alerts for non-existent medications and confusing users.
+- **Solution**: Added a guard based on `!inventory.getMedications().isEmpty()` (equivalently, checking the medication list size) before displaying auto-generated alert summaries in `PharmaTracker.run()`. This prevents noise and improves user experience.
+- **Technical Details**: Both alert display points (startup restoration and post-ListCommand) now validate that `inventory.getMedications()` is not empty before showing the summary.
+
+**Bug Fix 2: Auto-Cleanup of Orphaned Alerts on Medication Deletion**
+- **Issue**: When users deleted medications, alerts for those medications persisted in the active alerts list, creating ghost alerts.
+- **Solution**: Added a `cleanupOrphanedAlerts()` method to `RestockAlertService` that runs during `evaluateInventory()`. This method identifies alerts whose medications no longer exist in the inventory and automatically removes them, marking them as acknowledged with reason "Auto-resolved: medication deleted from inventory."
+- **Technical Details**: 
+  - Iterates through active alerts and checks if each medication key matches any current medication.
+  - Builds a list of orphaned alert keys and removes them atomically.
+  - Preserves deleted alert data in the alert history for audit purposes.
+
 ---
 
 ### Contributions to the User Guide
@@ -56,7 +73,7 @@ Implemented an additive restock command that tops up an existing medication's st
 | Section | Contribution |
 |---------|-------------|
 | `list` command | Format, descriptive list of fields (name, dosage, quantity, expiry), and example output with low-stock indicators |
-| `listcustomers` command | Format, both examples (with and without customers), and expected output blocks |
+| `list-customers` command | Format, both examples (with and without customers), and expected output blocks |
 | `restock` command | Format, both examples, and expected output blocks |
 | `dispense` command | Extended format with optional `/c` flag, both examples (with and without customer linking), expected output blocks, and error behaviour description |
 | Command Summary table | Updated with all implemented commands |
@@ -77,6 +94,11 @@ Implemented an additive restock command that tops up an existing medication's st
 - `ListCustomersCommandSequence.puml`
 - `RestockCommandSequence.puml`
 - `DispenseCommandSequence.puml`
+- `AuthenticationSequence.puml`
+- `AutoRestockAlertSequence.puml`
+- `HelpCommandSequence.puml`
+- `ExitCommandSequence.puml`
+- `StorageSequence.puml`
 
 ---
 
@@ -96,21 +118,21 @@ Implemented an additive restock command that tops up an existing medication's st
 
 ### List Customers Feature
 
-The `listcustomers` command retrieves and displays all registered customers with their customer ID, name, and phone number. It is a read-only command that requires no arguments.
+The `list-customers` command retrieves and displays all registered customers with their customer ID, name, and phone number. It is a read-only command that requires no arguments.
 
-**Format:** `listcustomers`
+**Format:** `list-customers`
 
 #### How it works
 
-1. The user enters `listcustomers`.
+1. The user enters `list-customers`.
 2. `PharmaTracker.run()` reads the input and passes it to `Parser.parse()`.
-3. `Parser.parse()` identifies the command word `listcustomers` and returns a new `ListCustomersCommand` object — no arguments are required.
+3. `Parser.parse()` identifies the command word `list-customers` and returns a new `ListCustomersCommand` object — no arguments are required.
 4. `PharmaTracker.run()` calls `ListCustomersCommand.execute()`, which calls `CustomerList.getAllCustomers()` to retrieve the full customer list.
 5. The result is handled via an `alt` branch:
    - If the list is empty, `"No customers registered yet."` is printed and the command returns early.
    - Otherwise, each `Customer` is printed with a 1-based index, their customer ID, name, and phone number, followed by a total count.
 
-![Sequence diagram showing the execution flow of the List Customers Command](images/ListCustomersCommandSequence.png)
+![Sequence diagram showing the execution flow of the List Customers Command](../images/ListCustomersCommandSequence.png)
 
 #### Design Considerations
 
@@ -143,7 +165,7 @@ The `restock` command **additively** increases the stock of an existing medicati
 7. `medication.setQuantity(medication.getQuantity() + quantity)` increments the existing stock.
 8. `Ui` prints the confirmation message showing the medication name, units added, and updated stock total.
 
-![Sequence diagram showing the execution flow of the Restock Command](images/RestockCommandSequence.png)
+![Sequence diagram showing the execution flow of the Restock Command](../images/RestockCommandSequence.png)
 
 #### Design Considerations
 
