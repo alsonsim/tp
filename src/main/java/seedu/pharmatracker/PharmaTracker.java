@@ -73,7 +73,8 @@ public class PharmaTracker {
             ui.printMessage("Restored session for user: " + authService.getCurrentUsername());
             ArrayList<RestockAlert> activeAlerts = restockAlertService.getActiveAlerts();
             // Only show alerts on startup if there are active alerts and inventory is not empty
-            if (!activeAlerts.isEmpty() && inventory.getMedicationCount() > 0) {
+            if (!activeAlerts.isEmpty() && inventory.getMedications() != null
+                    && !inventory.getMedications().isEmpty()) {
                 ui.printAutoRestockAlertSummary(activeAlerts);
             }
         } else {
@@ -112,7 +113,8 @@ public class PharmaTracker {
                     if (authService.isAuthenticated() && c instanceof ListCommand) {
                         ArrayList<RestockAlert> activeAlerts = restockAlertService.getActiveAlerts();
                         // Only show alerts after list command if inventory is not empty
-                        if (!activeAlerts.isEmpty() && inventory.getMedicationCount() > 0) {
+                        if (!activeAlerts.isEmpty() && inventory.getMedications() != null
+                                && !inventory.getMedications().isEmpty()) {
                             ui.printAutoRestockAlertSummary(activeAlerts);
                         }
                     }

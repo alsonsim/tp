@@ -55,8 +55,8 @@ Implemented two critical bug fixes to ensure the auto restock alert feature beha
 
 **Bug Fix 1: Suppress Alerts When Inventory is Empty**
 - **Issue**: Auto restock alert summaries were displayed even when the inventory was empty, showing alerts for non-existent medications and confusing users.
-- **Solution**: Added a check `inventory.getMedicationCount() > 0` before displaying auto-generated alert summaries in `PharmaTracker.run()`. This prevents noise and improves user experience.
-- **Technical Details**: Both alert display points (startup restoration and post-ListCommand) now validate that the inventory is not empty.
+- **Solution**: Added a guard based on `!inventory.getMedications().isEmpty()` (equivalently, checking the medication list size) before displaying auto-generated alert summaries in `PharmaTracker.run()`. This prevents noise and improves user experience.
+- **Technical Details**: Both alert display points (startup restoration and post-ListCommand) now validate that `inventory.getMedications()` is not empty before showing the summary.
 
 **Bug Fix 2: Auto-Cleanup of Orphaned Alerts on Medication Deletion**
 - **Issue**: When users deleted medications, alerts for those medications persisted in the active alerts list, creating ghost alerts.

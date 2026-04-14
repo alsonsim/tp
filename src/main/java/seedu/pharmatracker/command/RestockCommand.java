@@ -67,10 +67,11 @@ public class RestockCommand extends Command {
         }
 
         if (!isValidMedicationIndex(inventory)) {
+            int inventorySize = inventory.getMedications().size();
             logger.log(Level.WARNING, "Restock failed: invalid index {0}, inventory size={1}",
-                    new Object[]{index, inventory.getMedicationCount()});
+                new Object[]{index, inventorySize});
             ui.printMessage("Invalid index. Please enter a number between 1 and "
-                    + inventory.getMedicationCount() + ".");
+                + inventorySize + ".");
             return;
         }
 
@@ -142,7 +143,7 @@ public class RestockCommand extends Command {
      * @return true if index is valid.
      */
     private boolean isValidMedicationIndex(Inventory inventory) {
-        return index >= 1 && index <= inventory.getMedicationCount();
+        return index >= 1 && index <= inventory.getMedications().size();
     }
 
     /**

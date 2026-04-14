@@ -56,8 +56,8 @@ note right of AlertService
 end note
 
 alt Show alerts
-    Inv --> PT : getMedicationCount()
-    alt Inventory not empty
+    Inv --> PT : getMedications()
+    alt Medications list not empty
         PT -> Ui : printAutoRestockAlertSummary(activeAlerts)
     end
 end

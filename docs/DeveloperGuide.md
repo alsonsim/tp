@@ -971,7 +971,7 @@ alert-history
 | Per-medication threshold | Stored on `Medication` | Flexible and realistic; different medications can have different reorder points |
 | Active + history model | Active map plus append-only history list | Enables operational view (`alerts`) and audit trail (`alert-history`) |
 | Automatic evaluation in main loop | Re-evaluate after command execution | Keeps alerts up-to-date without requiring users to trigger a separate scan command |
-| Alerts suppressed when inventory empty | Check `inventory.getMedicationCount() > 0` | Prevents confusing alert summaries for non-existent medications; improves user experience |
+| Alerts suppressed when inventory empty | Check `!inventory.getMedications().isEmpty()` | Prevents confusing alert summaries for non-existent medications; improves user experience |
 | Orphaned alert cleanup on delete | Automatic removal in `evaluateInventory()` | Ensures deleted medications do not leave ghost alerts; maintains data consistency |
 
 ---
