@@ -59,6 +59,10 @@ public class PharmaTracker {
      * commands, and saves the updated inventory state to storage. Catches and displays
      * any application-specific exceptions to the user.
      *
+     * Auto restock alerts are displayed when:
+     * - There are active alerts AND
+     * - The inventory is not empty (to avoid showing alerts for non-existent medications)
+     *
      * @throws PharmaTrackerException If a critical, unrecoverable error occurs during execution.
      */
     public void run() throws PharmaTrackerException {
@@ -68,7 +72,8 @@ public class PharmaTracker {
         if (authService.isAuthenticated()) {
             ui.printMessage("Restored session for user: " + authService.getCurrentUsername());
             ArrayList<RestockAlert> activeAlerts = restockAlertService.getActiveAlerts();
-            if (!activeAlerts.isEmpty()) {
+            // Only show alerts on startup if there are active alerts and inventory is not empty
+            if (!activeAlerts.isEmpty() && inventory.getMedicationCount() > 0) {
                 ui.printAutoRestockAlertSummary(activeAlerts);
             }
         } else {
@@ -106,7 +111,8 @@ public class PharmaTracker {
 
                     if (authService.isAuthenticated() && c instanceof ListCommand) {
                         ArrayList<RestockAlert> activeAlerts = restockAlertService.getActiveAlerts();
-                        if (!activeAlerts.isEmpty()) {
+                        // Only show alerts after list command if inventory is not empty
+                        if (!activeAlerts.isEmpty() && inventory.getMedicationCount() > 0) {
                             ui.printAutoRestockAlertSummary(activeAlerts);
                         }
                     }

@@ -41,17 +41,17 @@ public class ListCommand extends Command {
 
         if (medicationList == null) {
             logger.log(Level.SEVERE, "getMedications() returned null unexpectedly.");
-            System.out.println("An unexpected error occurred. Unable to retrieve medication list.");
+            ui.printMessage("An unexpected error occurred. Unable to retrieve medication list.");
             return;
         }
 
         if (medicationList.isEmpty()) {
             logger.log(Level.INFO, "Inventory is empty.");
-            System.out.println("Inventory is empty.");
+            ui.printMessage("Inventory is empty.");
             return;
         }
 
-        System.out.println("PharmaTracker Inventory:");
+        ui.printMessage("PharmaTracker Inventory:");
 
         int lowStockCount = 0;
 
@@ -72,14 +72,14 @@ public class ListCommand extends Command {
                         new Object[]{med.getName(), med.getQuantity()});
             }
 
-            System.out.println((i + 1) + ". " + med.toString() + lowStockFlag);
+            ui.printMessage((i + 1) + ". " + med.toString() + lowStockFlag);
         }
 
-        System.out.println(DIVIDER);
-        System.out.println("Total Medications: " + medicationList.size());
+        ui.printMessage(DIVIDER);
+        ui.printMessage("Total Medications: " + medicationList.size());
 
         if (lowStockCount > 0) {
-            System.out.println("Low Stock Alerts: " + lowStockCount + " medication(s) need restocking.");
+            ui.printMessage("Low Stock Alerts: " + lowStockCount + " medication(s) need restocking.");
         }
 
         logger.log(Level.INFO, "Listed {0} medications. Low stock count: {1}",

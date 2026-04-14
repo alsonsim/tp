@@ -957,10 +957,12 @@ alert-history
 4. `RestockAlertService` compares each medication's quantity against threshold:
    - If `quantity < threshold`, an active alert is created/updated.
    - If stock recovers above threshold, existing active alert is auto-resolved.
+   - **If a medication is deleted, any active alert for that medication is automatically removed and marked as acknowledged** with the reason "Auto-resolved: medication deleted from inventory."
 5. `alerts` prints currently active alerts.
 6. `ack-alert ALERT_INDEX` acknowledges one active alert by display index.
 7. `alert-history` shows full persisted alert history.
 8. Alert history is saved via `storage.saveAlertHistory(...)` each cycle.
+9. **Auto-generated alert summaries are only displayed if the inventory is not empty**, preventing noise when there are no medications to alert about.
 
 #### Design Considerations
 
@@ -969,6 +971,8 @@ alert-history
 | Per-medication threshold | Stored on `Medication` | Flexible and realistic; different medications can have different reorder points |
 | Active + history model | Active map plus append-only history list | Enables operational view (`alerts`) and audit trail (`alert-history`) |
 | Automatic evaluation in main loop | Re-evaluate after command execution | Keeps alerts up-to-date without requiring users to trigger a separate scan command |
+| Alerts suppressed when inventory empty | Check `inventory.getMedicationCount() > 0` | Prevents confusing alert summaries for non-existent medications; improves user experience |
+| Orphaned alert cleanup on delete | Automatic removal in `evaluateInventory()` | Ensures deleted medications do not leave ghost alerts; maintains data consistency |
 
 ---
 

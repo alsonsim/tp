@@ -37,7 +37,16 @@ public class RestockAlertService {
     /**
      * Scans inventory against configured thresholds and updates active alerts.
      *
-     * @param inventory Current inventory.
+     * This method performs two operations:
+     * 1. Updates active alerts based on current medication quantities:
+     *    - Creates new alerts for medications below threshold
+     *    - Updates existing alerts with current stock and threshold values
+     *    - Auto-resolves alerts when stock recovers above threshold
+     * 2. Cleans up orphaned alerts:
+     *    - Removes alerts for medications that have been deleted from inventory
+     *    - Marks removed alerts as acknowledged with auto-resolution reason
+     *
+     * @param inventory Current inventory. If null, method returns without performing any updates.
      */
     public void evaluateInventory(Inventory inventory) {
         if (inventory == null) {
@@ -65,6 +74,48 @@ public class RestockAlertService {
                     activeAlert.acknowledge("Auto-resolved: stock recovered above threshold.");
                     activeAlertsByMedicationKey.remove(key);
                 }
+            }
+        }
+
+        // Clean up active alerts for medications that no longer exist in inventory
+        cleanupOrphanedAlerts(inventory);
+    }
+
+    /**
+     * Removes alerts for medications that have been deleted from the inventory.
+     *
+     * Iterates through all active alerts and checks if the corresponding medication
+     * still exists in the current inventory. If a medication is not found, its alert
+     * is automatically removed from the active alerts map and marked as acknowledged
+     * with the reason "Auto-resolved: medication deleted from inventory."
+     *
+     * This ensures that when users delete medications, any associated restock alerts
+     * are automatically cleaned up and do not appear in the active alerts list.
+     *
+     * @param inventory The current inventory to verify medication existence against.
+     */
+    private void cleanupOrphanedAlerts(Inventory inventory) {
+        ArrayList<String> medicationKeysToRemove = new ArrayList<>();
+        
+        // Identify keys that correspond to medications no longer in inventory
+        for (String medicationKey : activeAlertsByMedicationKey.keySet()) {
+            boolean medicationExists = false;
+            for (Medication medication : inventory.getMedications()) {
+                if (buildMedicationKey(medication).equals(medicationKey)) {
+                    medicationExists = true;
+                    break;
+                }
+            }
+            if (!medicationExists) {
+                medicationKeysToRemove.add(medicationKey);
+            }
+        }
+
+        // Remove alerts for deleted medications and mark as auto-resolved
+        for (String medicationKey : medicationKeysToRemove) {
+            RestockAlert alert = activeAlertsByMedicationKey.remove(medicationKey);
+            if (alert != null && !alert.isAcknowledged()) {
+                alert.acknowledge("Auto-resolved: medication deleted from inventory.");
             }
         }
     }

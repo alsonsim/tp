@@ -73,19 +73,19 @@ public class DispenseCommand extends Command {
 
         if (!isValidQuantity()) {
             logger.log(Level.WARNING, "Invalid quantity: {0}", quantity);
-            System.out.println("Invalid quantity. Quantity to dispense must be at least 1.");
+            ui.printMessage("Invalid quantity. Quantity to dispense must be at least 1.");
             return;
         }
 
         if (inventory.getMedications() == null || inventory.getMedications().isEmpty()) {
             logger.log(Level.WARNING, "Attempted to dispense from empty inventory.");
-            System.out.println("Inventory is empty. No medications to dispense.");
+            ui.printMessage("Inventory is empty. No medications to dispense.");
             return;
         }
 
         if (!isValidMedicationIndex(inventory)) {
             logger.log(Level.WARNING, "Invalid medication index: {0}", index);
-            System.out.println("Invalid index. Please enter a valid medication index.");
+            ui.printMessage("Invalid index. Please enter a valid medication index.");
             return;
         }
 
@@ -93,14 +93,14 @@ public class DispenseCommand extends Command {
 
         if (med == null) {
             logger.log(Level.SEVERE, "Medication at index {0} returned null unexpectedly.", index);
-            System.out.println("An unexpected error occurred. Medication not found.");
+            ui.printMessage("An unexpected error occurred. Medication not found.");
             return;
         }
 
         if (med.isExpired()) {
             logger.log(Level.WARNING, "Attempted to dispense expired medication: {0} (Exp: {1})",
                 new Object[]{med.getName(), med.getExpiryDate()});
-            System.out.println("Cannot dispense expired medication: " + med.getName()
+            ui.printMessage("Cannot dispense expired medication: " + med.getName()
                 + " (Expired on " + med.getExpiryDate() + ").");
             return;
         }
@@ -108,13 +108,13 @@ public class DispenseCommand extends Command {
         if (!hasSufficientStock(med)) {
             logger.log(Level.WARNING, "Insufficient stock for {0}: requested={1}, available={2}",
                     new Object[]{med.getName(), quantity, med.getQuantity()});
-            System.out.println("Insufficient stock. Current stock: " + med.getQuantity());
+            ui.printMessage("Insufficient stock. Current stock: " + med.getQuantity());
             return;
         }
 
         if (isCustomerLinked() && !isValidCustomerIndex(customerList)) {
             logger.log(Level.WARNING, "Invalid customer index: {0}", customerIndex);
-            System.out.println("Invalid customer index. Please enter a valid customer index.");
+            ui.printMessage("Invalid customer index. Please enter a valid customer index.");
             return;
         }
 
@@ -130,7 +130,7 @@ public class DispenseCommand extends Command {
             }
         }
 
-        performDispense(med);
+        performDispense(med, ui);
 
         // Record to daily dispense log
         String patientName = "";
@@ -147,7 +147,7 @@ public class DispenseCommand extends Command {
         inventory.getDispenseLog().addRecord(record);
 
         if (isCustomerLinked()) {
-            linkToCustomer(med, customerList);
+            linkToCustomer(med, customerList, ui);
         }
     }
 
@@ -155,18 +155,19 @@ public class DispenseCommand extends Command {
      * Reduces the medication stock and prints the dispense confirmation.
      *
      * @param med The medication to dispense from.
+     * @param ui  The user interface for displaying messages.
      */
-    private void performDispense(Medication med) {
+    private void performDispense(Medication med, Ui ui) {
         int updatedStock = med.getQuantity() - quantity;
         med.setQuantity(updatedStock);
 
         logger.log(Level.INFO, "Dispensed {0} units of {1}. Updated stock: {2}",
                 new Object[]{quantity, med.getName(), updatedStock});
 
-        System.out.println("Dispensing successfully!");
-        System.out.println("Medication: " + med.getName());
-        System.out.println("Amount: " + quantity + " units");
-        System.out.println("Updated Stock: " + updatedStock + " units");
+        ui.printMessage("Dispensing successfully!");
+        ui.printMessage("Medication: " + med.getName());
+        ui.printMessage("Amount: " + quantity + " units");
+        ui.printMessage("Updated Stock: " + updatedStock + " units");
     }
 
     /**
@@ -174,13 +175,14 @@ public class DispenseCommand extends Command {
      *
      * @param med          The medication that was dispensed.
      * @param customerList The list of registered customers.
+     * @param ui           The user interface for displaying messages.
      */
-    private void linkToCustomer(Medication med, CustomerList customerList) {
+    private void linkToCustomer(Medication med, CustomerList customerList, Ui ui) {
         Customer customer = customerList.getCustomer(customerIndex - 1);
 
         if (customer == null) {
             logger.log(Level.SEVERE, "Customer at index {0} returned null unexpectedly.", customerIndex);
-            System.out.println("An unexpected error occurred. Customer record not updated.");
+            ui.printMessage("An unexpected error occurred. Customer record not updated.");
             return;
         }
 
@@ -193,7 +195,7 @@ public class DispenseCommand extends Command {
         customer.addDispensingHistory(record);
 
         logger.log(Level.INFO, "Linked dispense to customer: {0}", customer.getName());
-        System.out.println("Recorded for customer: [" + customer.getCustomerId() + "] "
+        ui.printMessage("Recorded for customer: [" + customer.getCustomerId() + "] "
                 + customer.getName() + ".");
     }
 

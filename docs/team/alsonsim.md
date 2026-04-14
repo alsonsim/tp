@@ -49,6 +49,23 @@ Implemented an additive restock command that tops up an existing medication's st
 - Distinct from `update` by design — prevents accidental stock wipes during routine restocking workflows.
 - Validates both index and quantity before modifying any data.
 
+#### 5. Auto Restock Alert System Improvements
+
+Implemented two critical bug fixes to ensure the auto restock alert feature behaves correctly in edge cases:
+
+**Bug Fix 1: Suppress Alerts When Inventory is Empty**
+- **Issue**: Auto restock alert summaries were displayed even when the inventory was empty, showing alerts for non-existent medications and confusing users.
+- **Solution**: Added a check `inventory.getMedicationCount() > 0` before displaying auto-generated alert summaries in `PharmaTracker.run()`. This prevents noise and improves user experience.
+- **Technical Details**: Both alert display points (startup restoration and post-ListCommand) now validate that the inventory is not empty.
+
+**Bug Fix 2: Auto-Cleanup of Orphaned Alerts on Medication Deletion**
+- **Issue**: When users deleted medications, alerts for those medications persisted in the active alerts list, creating ghost alerts.
+- **Solution**: Added a `cleanupOrphanedAlerts()` method to `RestockAlertService` that runs during `evaluateInventory()`. This method identifies alerts whose medications no longer exist in the inventory and automatically removes them, marking them as acknowledged with reason "Auto-resolved: medication deleted from inventory."
+- **Technical Details**: 
+  - Iterates through active alerts and checks if each medication key matches any current medication.
+  - Builds a list of orphaned alert keys and removes them atomically.
+  - Preserves deleted alert data in the alert history for audit purposes.
+
 ---
 
 ### Contributions to the User Guide

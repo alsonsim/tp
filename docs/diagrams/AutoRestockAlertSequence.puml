@@ -49,5 +49,18 @@ else alert-history
 end
 
 PT -> AlertService : evaluateInventory(inventory)
+note right of AlertService
+  - Evaluates all medications against thresholds
+  - Creates/updates/auto-resolves alerts as needed
+  - Cleans up orphaned alerts for deleted medications
+end note
+
+alt Show alerts
+    Inv --> PT : getMedicationCount()
+    alt Inventory not empty
+        PT -> Ui : printAutoRestockAlertSummary(activeAlerts)
+    end
+end
+
 PT -> Storage : saveAlertHistory(alertService.getAlertHistory())
 @enduml
